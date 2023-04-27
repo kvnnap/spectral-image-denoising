@@ -15,7 +15,7 @@ img_gray = img.convert('L')
 img_gray = np.array(img_gray)
 
 level = pywt.dwtn_max_level(img_gray.shape, wavelet_name)
-#level = 1
+level = 2
 
 # Decompose image using wavedec2
 coeffs = pywt.wavedec2(img_gray, wavelet_name, level=level)
@@ -23,15 +23,22 @@ coeffs = pywt.wavedec2(img_gray, wavelet_name, level=level)
 # filter stuff
 threshold = 10
 mode = 'hard'
+sigma = 0.45
 for i in range(1, len(coeffs)):
     (h,v,d) = coeffs[i]
+    for img in [h, v, d]:
+        s = np.std(img)
+        m = np.mean(img)
+        mask = np.logical_and(img >= m - sigma * s, img <= m + sigma * s)
+        img[~mask] = m
+    
     # h = pywt.threshold(h, threshold, mode=mode)
     # v = pywt.threshold(v, threshold, mode=mode)
     # d = pywt.threshold(d, threshold, mode=mode)
     # h = cv2.Canny(np.uint8(h), 100, 200)
     # v = cv2.Canny(np.uint8(v), 100, 200)
     # d = cv2.Canny(np.uint8(d), 100, 200)
-    coeffs[i] = (h,v,d)
+    # coeffs[i] = (h,v,d)
 
 # perform inverse
 img_result = pywt.waverec2(coeffs, wavelet_name)
@@ -48,7 +55,11 @@ arr, slices = pywt.coeffs_to_array(viewingCoeffs)
 plt.imshow(arr, cmap=plt.cm.gray)
 plt.show()
 
-plt.imshow(img_result, cmap=plt.cm.gray)
+
+fig, axes = plt.subplots(nrows=2)
+axes[0].imshow(img_gray, cmap=plt.cm.gray)
+axes[1].imshow(img_result, cmap=plt.cm.gray)
+
 plt.show()
 
 # # Show all coefficients
