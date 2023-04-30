@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load input image as grayscale
-img = plt.imread('images/lena.png')
+img = plt.imread('images/dice_2.png')
 if img.ndim == 3:
     img = np.mean(img, axis=2)
 
