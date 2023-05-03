@@ -13,7 +13,7 @@ def filter_std_dev(coeff, sigma):
         s = np.std(img)
         m = np.mean(img)
         mask = np.logical_and(img >= m - sigma * s, img <= m + sigma * s)
-        img[~mask] = m
+        img[mask] = m
 
 def filter_median(coeff, size):
     (h,v,d) = coeff
@@ -45,7 +45,7 @@ sigma = 0.45
 for i in range(1, len(coeffs)):
     # if i == 1:
     #     continue
-    filter_std_dev(coeffs[i], 2)
+    filter_std_dev(coeffs[i], 0.5)
     #filter_median(coeffs[i], 3)
     (h,v,d) = coeffs[i]
     # fig, axes = plt.subplots(3)
@@ -80,12 +80,12 @@ plt.colorbar(plt.imshow(arr, cmap=plt.cm.gray))
 plt.show()
 
 img_gray = alpha_correction_chain(tone_map(img_gray))
-img_result = alpha_correction_chain(tone_map(img_result))
+img_result = alpha_correction_chain(tone_map(np.abs(img_result)))
 #img_result = img_result / np.abs(img_result).max()
 
 fig, axes = plt.subplots(nrows=2)
 plt.colorbar(axes[0].imshow(img_gray, cmap=plt.cm.gray))
-plt.colorbar(axes[1].imshow(np.abs(img_result), cmap=plt.cm.gray))
+plt.colorbar(axes[1].imshow(img_result, cmap=plt.cm.gray))
 
 plt.show()
 
