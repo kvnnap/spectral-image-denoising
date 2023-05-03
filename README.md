@@ -21,7 +21,7 @@ struct RawFormat
 {
     int width;
     int height;
-    std::vector<Vector3> // length width*height
+    std::vector<Vector3> pixels; // length width*height
 }
 ```
 ## Other
