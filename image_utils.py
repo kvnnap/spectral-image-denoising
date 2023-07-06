@@ -51,3 +51,30 @@ def filter_image_salt(img, scale):
             if pix > scale * max(s):
                 img[i, j] = np.mean(s)
 
+# Uses SURE to estimate the mean-squared error
+def estimate_mse(image):
+    # Convert image to a flattened array
+    image_flattened = image.flatten()
+
+    # Compute the mean-squared error (MSE) using SURE
+    d = image_flattened.size
+    expected_value = np.mean(image_flattened)
+    mse = np.mean((image_flattened - expected_value)**2) + (d - 1) * np.var(image_flattened)
+
+    return mse
+
+soft = lambda x, t : np.sign(x) * np.maximum(np.abs(x) - t, 0)
+
+# x is the original, y is estimate
+TrueMSE = lambda x, y : np.sum((x - y)**2)
+
+# y = x + n, t is the thresolding value for soft thresholding, sig is std of noise
+SureSoftMSE = lambda y, t, sig : ( np.sum(y[np.abs(y) < t]**2) 
+    + np.sum(np.abs(y) > t) * (t**2 + 2 * sig**2) - sig**2 * y.size )
+
+# SureSoftMSE = lambda y, t, sig: (
+#     np.sum(np.where(np.abs(y) < t, y ** 2, (t ** 2 + 2 * sig ** 2) * np.abs(y) - (t ** 2 - sig ** 2)))
+# )
+
+# def SureSoftMSE(y, t, sig):
+#     return y.size - 2 * np.sum(np.where(np.abs(y) <= t, 1, 0)) + np.sum(np.where(np.abs(y) <= t, 0, np.sign(y) * (np.abs(y) - t))**2)

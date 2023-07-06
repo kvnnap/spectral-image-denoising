@@ -11,16 +11,15 @@ fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
 x = load_image_raw_file('images/dice_2.raw')
 #x = load_image_raw_file('images/ashtray_2.raw')
 x = convert_to_grayscale(x)
-x = alpha_correction_chain(tone_map(x))
-#x = float_image_to_uint(x)
+#x = alpha_correction_chain(tone_map(x))
 
 FDCT = cl.FDCT2D(dims=x.shape)
 c = FDCT @ x
 
 for i in range(4):
-    d = pywt.threshold(c, 0.0125 * 2 * i, mode='hard')
-    xinv = (FDCT.H @ d).real
-    #xinv = alpha_correction_chain(tone_map(xinv))
+    c = pywt.threshold(c, 0.0125 * i, mode='hard')
+    xinv = (FDCT.H @ c).real
+    xinv = alpha_correction_chain(tone_map(xinv))
     axes[i >> 1, i % 2].imshow(xinv, cmap='gray')
     axes[i >> 1, i % 2].set_title(i)
 
