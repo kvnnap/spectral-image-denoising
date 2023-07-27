@@ -26,4 +26,9 @@ struct RawFormat
 ```
 ## Other
 
+Update requirements.txt using
+```bash
+pip3 freeze > requirements.txt
+```
+
 Happy coding!
