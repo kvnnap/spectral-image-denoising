@@ -64,11 +64,11 @@ def objective_function(x):
     return local_mse
 
 # Define the search space
-space = [Real(0, 1)] * 32
+space = [Real(0, 1)] * 4
 
 mse = TrueMSE(image, ref_image)
 
-result = gp_minimize(objective_function, space, n_calls=250)
+result = gp_minimize(objective_function, space, n_calls=100)
 
 final_image = get_image(image.shape, magnitude_spectrum, phase_spectrum, result.x)
 freq_coeffs = create_multimask(image.shape, result.x) * 255

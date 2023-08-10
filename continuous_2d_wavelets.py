@@ -46,7 +46,7 @@ for level in range(len(ss)):
     j = level % N
     plt.sca(axes[i, j])
     plt.axis('off')
-    if True:
+    if False:
         C = 1.0 / (ss[:level] * wav_norm[:level])
         reconstruction = (C * np.real(coeffs[..., :level])).sum(axis=-1)
     else:

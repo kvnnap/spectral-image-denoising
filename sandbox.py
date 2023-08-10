@@ -1,64 +1,54 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
+from skimage import data, img_as_float
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error
 from image_utils import *
 
-ref_image = load_image_raw_file('images/cb_caustics/output_0.raw')
-ref_image = convert_to_grayscale(ref_image)
-ref_image = alpha_correction_chain(tone_map(ref_image))
-refi_std = np.std(ref_image)
+ref_image = load_image('images/dice_caustics/output_0.raw')
+image = load_image('images/dice_caustics/output_1.raw')
 
-raw_image = load_image_raw_file('images/cb_caustics/output_1.raw')
-raw_image = convert_to_grayscale(raw_image)
-raw_image = alpha_correction_chain(tone_map(raw_image))
-rawi_std = np.std(raw_image)
+# img = img_as_float(data.camera())
+# rows, cols = img.shape
 
+# noise = np.ones_like(img) * 0.2 * (img.max() - img.min())
+# rng = np.random.default_rng()
+# noise[rng.random(size=noise.shape) > 0.5] *= -1
 
-# tone_mapped = tone_map(raw_image)
-# alpha_image = alpha_correction_chain(tone_mapped)
-# data = float_image_to_uint(alpha_image)
+# img_noise = img + noise
+# img_const = img + abs(noise)
 
+img = ref_image
+img_noise = image
+img_const = image + 0.2
 
-thold = np.linspace(0, 4, 100) 
-MSEcurve = np.zeros(thold.size)
-SUREcurve = np.zeros(thold.size)
-for ind, t  in enumerate(thold):
-    z = soft(raw_image, t)
-    MSEcurve[ind] = TrueMSE(z, ref_image)
-    SUREcurve[ind] = SureSoftMSE(raw_image, t, rawi_std)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(10, 4),
+                         sharex=True, sharey=True)
+ax = axes.ravel()
 
-fig, ax = plt.subplots(1,1, figsize = (10,5))
-ax.plot(thold, MSEcurve, label = 'True MSE')
-ax.plot(thold, SUREcurve, label = 'SURE')
-ax.legend()
-ax.set_xlabel(r'Threshold / $\sigma^2$')
-ax.set_title('MSE with respect to Threshold Value in the Soft Threshold')
-ax.grid()
+mse_none = mean_squared_error(img, img)
+ssim_none = ssim(img, img, data_range=img.max() - img.min())
 
-print("done")
+mse_noise = mean_squared_error(img, img_noise)
+ssim_noise = ssim(img, img_noise,
+                  data_range=img_noise.max() - img_noise.min())
 
-print(estimate_mse(raw_image))
+mse_const = mean_squared_error(img, img_const)
+ssim_const = ssim(img, img_const,
+                  data_range=img_const.max() - img_const.min())
 
-# im = plt.imshow(raw_image, cmap='gray')
-# cbar = plt.colorbar(im)
-# #cbar.set_label("color")
+ax[0].imshow(img, cmap=plt.cm.gray, vmin=0, vmax=1)
+ax[0].set_xlabel(f'MSE: {mse_none:.2f}, SSIM: {ssim_none:.2f}')
+ax[0].set_title('Original image')
+
+ax[1].imshow(img_noise, cmap=plt.cm.gray, vmin=0, vmax=1)
+ax[1].set_xlabel(f'MSE: {mse_noise:.2f}, SSIM: {ssim_noise:.2f}')
+ax[1].set_title('Image with noise')
+
+ax[2].imshow(img_const, cmap=plt.cm.gray, vmin=0, vmax=1)
+ax[2].set_xlabel(f'MSE: {mse_const:.2f}, SSIM: {ssim_const:.2f}')
+ax[2].set_title('Image plus constant')
+
+plt.tight_layout()
 plt.show()
-
-import numpy as np
-
-# Generate the true signal
-x = np.array([1, 2, 3, 4, 5])
-
-# Add noise to create the observed signal
-noise = np.random.normal(0, 1, size=x.shape)  # Gaussian noise
-y = x + noise
-
-# Define the estimator (example: simple averaging)
-estimator = np.mean(y)
-
-# Compute the SURE estimate of the MSE
-d = y.size  # Dimensionality of the problem
-residuals = estimator - y  # Residuals of the estimator
-correction = np.mean(residuals ** 2) - np.var(noise)  # Correction term
-sure_estimate = np.mean(residuals ** 2) - d * correction
-
-print("SURE estimate of MSE:", sure_estimate)

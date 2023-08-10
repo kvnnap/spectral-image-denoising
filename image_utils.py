@@ -29,7 +29,11 @@ def tone_map(image_data):
     # Return the tone mapped pixel data
     return tone_mapped_data
 
-import numpy as np
+def load_image(path):
+    image = load_image_raw_file(path)
+    image = convert_to_grayscale(image)
+    image = alpha_correction_chain(tone_map(image))
+    return image
 
 def alpha_correction_chain(data):
     gamma = 2.4
@@ -78,3 +82,27 @@ SureSoftMSE = lambda y, t, sig : ( np.sum(y[np.abs(y) < t]**2)
 
 # def SureSoftMSE(y, t, sig):
 #     return y.size - 2 * np.sum(np.where(np.abs(y) <= t, 1, 0)) + np.sum(np.where(np.abs(y) <= t, 0, np.sign(y) * (np.abs(y) - t))**2)
+
+# works only with positive numbers?
+def next_power_of_two(n):
+    n -= 1
+    n |= n >> 1
+    n |= n >> 2
+    n |= n >> 4
+    n |= n >> 8
+    n |= n >> 16
+    n |= n >> 32
+    return n + 1
+
+def resize_to_nearest_power_of_2_square(img):
+    s = next_power_of_two(max(img.shape))
+    return np.pad(img, ((0, s - img.shape[0]), (0, s - img.shape[1])), mode='constant')
+
+def crop_enlarge(img, shape):
+    if (shape[0] < img.shape[0]):
+        img = img[:shape[0]]
+    if (shape[1] < img.shape[1]):
+        img = img.T
+        img = img[:shape[1]]
+        img = img.T
+    return np.pad(img, ((0, shape[0] - img.shape[0]), (0, shape[1] - img.shape[1])), mode='constant')
