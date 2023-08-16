@@ -1,3 +1,8 @@
 /.devcontainer/CurveLab-2.1.3.tar.gz
 /images/
 __pycache__/
+
+CurveLab-2.1.3.tar.gz
+Desmystifying_Curvelets.ipynb
+result.json
+sigmoid.npz
