@@ -72,8 +72,8 @@ def load(file_name):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluates denoising using the parameter space provided in the input json file")
-    parser.add_argument('--config', default='config.json', help='Input file path')
-    parser.add_argument('--result', default='result.json', help='Output file path')
+    parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
+    parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
     args = parser.parse_args()
 
     configPath = args.config
