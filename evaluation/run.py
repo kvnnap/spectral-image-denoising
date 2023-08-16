@@ -1,12 +1,13 @@
 import sys
-sys.path.append('/workspaces/python-image-processing')
+import os
+sys.path.append(os.getcwd())
 
 from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
 from denoiser import *
 
-import json
+import jsonpickle
 
 class ParameterSpace:
     def __init__(self):
@@ -23,15 +24,6 @@ class RunResult:
         self.denoiserParams = denoiserParams
         self.denoiserResult = denoiserResult
 
-    # def to_json(self):
-    #     return self.__dict__
-
-# class MyJSONEncoder(json.JSONEncoder):
-#     def default(self, obj):
-#         return obj.to_json()
-    
-
-# parameter space
 class Run:
     def __init__(self, parameterSpace):
         self.parameterSpace = parameterSpace
@@ -57,14 +49,17 @@ class Run:
                                         denoiserResult = denoiserMethod.run(denoiserParams)
                                         self.runs.append(RunResult(denoiserParams, denoiserResult))
     
-    def save(self, file_name):
+
+
+def save(file_name, obj):
         with open(file_name, 'w') as fp:
-            json.dump(self, fp)
-
-
+            fp.write(jsonpickle.encode(obj))
+    
+def load(file_name):
+    with open(file_name, 'r') as fp:
+        return jsonpickle.decode(fp.read())
 
 def main():
-
     ps = ParameterSpace()
     ps.images = [('images/dice_caustics/output_0.raw', ['images/dice_caustics/output_1.raw'])]
     ps.metrics = ['mse']
@@ -76,7 +71,10 @@ def main():
 
     run = Run(ps)
     run.run()
-    #run.save('run.json')
+
+    save('run.json', run)
+
+    run2 = load('run.json')
 
     print(f"Result count: {len(run.runs)}")
 
