@@ -3,14 +3,25 @@ import copy
 from image_utils import *
 from skopt.space import Real
 
+class DenoiserRunParamsString:
+    def __init__(self, pairImage, metric, thresholding, search, coefficientLength, iterations, denoiser):
+        self.pairImage = pairImage
+        self.metric = metric
+        self.thresholding = thresholding
+        self.search = search
+        self.coefficientLength = coefficientLength
+        self.iterations = iterations
+        self.denoiser = denoiser
+
 class DenoiserRunParams:
-    def __init__(self, pairImage, metric, thresholding, searchMethod, coefficientLength, iterations):
+    def __init__(self, pairImage, metric, thresholding, searchMethod, coefficientLength, iterations, denoiserMethod):
         self.pairImage = pairImage
         self.metric = metric
         self.thresholding = thresholding
         self.searchMethod = searchMethod
         self.coefficientLength = coefficientLength
         self.iterations = iterations
+        self.denoiserMethod = denoiserMethod
 
 class Denoiser:
     def run(self, denoiserParams):

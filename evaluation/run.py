@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import jsonpickle
+import multiprocessing
 
 sys.path.append(os.getcwd())
 
@@ -32,35 +33,58 @@ class Progress:
         self.callback(current, total)
 
 class Run:
-    def __init__(self, parameterSpace, monitoringFn=lambda n,d: None):
+    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d: None):
         self.parameterSpace = parameterSpace
         self.progress = Progress(monitoringFn)
+        self.cores = max(1, cores)
+        self.runsCompleted = 0
+        self.totalRuns = 0
         self.runs = []
 
-    # def monitorProgress(self, fn):
-    #     self.progress = Progress(fn)
+    @staticmethod
+    def _task(dp):
+        pairImage = dp.pairImage
+        coeff = dp.coefficientLength
+        iteration = dp.iterations
+        metricMethod = MetricFactory.create(dp.metric)
+        thresholdMethod = ThresholdFactory.create(dp.thresholding)
+        searchMethod = SearchFactory.create(dp.search)
+        denoiserMethod = DenoiserFactory.create(dp.denoiser)
+        denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), metricMethod, thresholdMethod, searchMethod, coeff, iteration, denoiserMethod)
+        return RunResult(dp, denoiserMethod.run(denoiserParams))
+
+    def _update(self, _):
+        self.runsCompleted += 1
+        self.progress.update(self.runsCompleted, self.totalRuns)
     
     def run(self):
         p = self.parameterSpace
-        totalRuns = len(p.images) * len(p.metrics) * len(p.thresholds) * len(p.searchMethods) * len(p.coefficientLengths) * len(p.iterations) * len(p.denoisers)
+        denParams = []
         for denoiserName in p.denoisers:
-            denoiserMethod = DenoiserFactory.create(denoiserName)
             for img in p.images:
                 refImage = img[0]
                 images = img[1]
                 for image in images:
                     for metric in p.metrics:
-                        metricMethod = MetricFactory.create(metric)
                         for threshold in p.thresholds:
-                            thresholdMethod = ThresholdFactory.create(threshold)
-                            for searchMethod in p.searchMethods:
-                                searchMethod = SearchFactory.create(searchMethod)
+                            for searchMethodName in p.searchMethods:
                                 for coeff in p.coefficientLengths:
                                     for iteration in p.iterations:
-                                        denoiserParams = DenoiserRunParams((refImage, image), metricMethod, thresholdMethod, searchMethod, coeff, iteration)
-                                        denoiserResult = denoiserMethod.run(denoiserParams)
-                                        self.runs.append(RunResult(denoiserParams, denoiserResult))
-                                        self.progress.update(len(self.runs), totalRuns)
+                                        denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, coeff, iteration, denoiserName)
+                                        denParams.append(denoiserParamsString)
+
+        self.totalRuns = len(denParams)
+        # distribute tasks using multiprocessing
+        if (self.cores == 1):
+            for denoiserParams in denParams:
+                self.runs.append(Run._task(denoiserParams))
+                self._update()
+        else:
+            pool = multiprocessing.Pool(processes=min(self.cores, len(denParams)))
+            asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
+            pool.close()
+            pool.join()
+            self.runs = list(map(lambda x: x.get(), asyncResults))
 
 def save(file_name, obj):
         with open(file_name, 'w') as fp:
@@ -71,17 +95,19 @@ def load(file_name):
         return jsonpickle.decode(fp.read())
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluates denoising using the parameter space provided in the input json file")
+    parser = argparse.ArgumentParser(description='Evaluates denoising using the parameter space provided in the input json file')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
+    parser.add_argument('--cores', default=0, help='Number of cores to use. 0 uses maximum')
     args = parser.parse_args()
 
     configPath = args.config
     resultPath = args.result
-    print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'')
+    cores = args.cores if args.cores > 0 and args.cores <= multiprocessing.cpu_count() else multiprocessing.cpu_count()
+    print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Using cores: {cores}')
 
     parameterSpace = load(configPath)
-    run = Run(parameterSpace, lambda n, d: print(f'Progress: {n} out of {d}', end='\r'))
+    run = Run(parameterSpace, cores, lambda n, d: print(f'Progress: {n} out of {d}', end='\r'))
     run.run()
 
     save(resultPath, run)

@@ -43,6 +43,10 @@ def naive(fn, space, n_calls):
                 break
     return Result(min_score[1], x_iters, min_score[0], scores, scores_global)
 
+def gp_minimize_wrapper(fn, space, n_calls):
+    r = gp_minimize(fn, space, n_calls=n_calls)
+    return Result(r.x, r.x_iters, r.fun, None, r.func_vals)
+
 # Method returned expects (fn, space, n_calls)
 class SearchFactory:
     @staticmethod
@@ -51,6 +55,6 @@ class SearchFactory:
         if (name == "naive"):
             return naive
         elif (name == "gp_minimize"):
-            return lambda fn, space, n_calls: gp_minimize(fn, space, n_calls=n_calls)
+            return gp_minimize_wrapper
         else:
             raise ValueError(f"Invalid search name {search_name}")
