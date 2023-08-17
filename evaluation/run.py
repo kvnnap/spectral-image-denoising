@@ -78,7 +78,7 @@ class Run:
         if (self.cores == 1):
             for denoiserParams in denParams:
                 self.runs.append(Run._task(denoiserParams))
-                self._update()
+                self._update(None)
         else:
             pool = multiprocessing.Pool(processes=min(self.cores, len(denParams)))
             asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
