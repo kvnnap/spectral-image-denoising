@@ -5,7 +5,7 @@ def local_mse(ref, noisy):
     return np.sum((ref - noisy) ** 2).item()
 
 def local_ssim(ref, noisy):
-    return ssim(ref, noisy, data_range=noisy.max() - noisy.min()).item()
+    return -ssim(ref, noisy, data_range=noisy.max() - noisy.min()).item()
 
 class MetricFactory:
     @staticmethod
