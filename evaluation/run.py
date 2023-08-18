@@ -4,6 +4,7 @@ import argparse
 import jsonpickle
 import multiprocessing
 import tqdm
+import importlib.util
 
 sys.path.append(os.getcwd())
 
@@ -11,7 +12,26 @@ from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
 from denoiser import *
-from version import *
+
+### Version stuff
+class Version:
+    def __init__(self, commit = '', date = '', dirty = 0):
+        self.commit = commit
+        self.date = date
+        self.dirty = dirty
+    def to_string(self):
+        return f'Commit: {self.commit} Date: {self.date} Dirty: {self.dirty}' if (len(self.commit) > 0) else 'Version N/A'
+    def to_dict(self):
+        return { 'commit' : self.commit,  'date' : self.date, 'dirty': self.dirty} if (len(self.commit) > 0) else {}
+
+version_obj = Version()
+if (importlib.util.find_spec('version') is not None):
+    version_module = importlib.import_module('version')
+    version_obj = Version(version_module.git_commit, version_module.git_date, version_module.git_dirty)
+
+def get_version():
+    return version_obj
+### End version stuff
 
 class ParameterSpace:
     def __init__(self):
@@ -42,7 +62,7 @@ class Run:
         self.runsCompleted = 0
         self.totalRuns = 0
         self.runs = []
-        self.version = { 'commit' : git_commit,  'date' : git_date, 'dirty': git_dirty}
+        self.version = get_version().to_dict()
 
     @staticmethod
     def _task(dp):
@@ -98,7 +118,7 @@ def load(file_name):
         return jsonpickle.decode(fp.read())
 
 def main():
-    versionString = f'Commit: {git_commit} Date: {git_date} Dirty: {git_dirty}' if (len(git_commit) > 0) else 'Version N/A'
+    versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
