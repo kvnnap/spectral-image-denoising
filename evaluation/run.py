@@ -3,6 +3,7 @@ import os
 import argparse
 import jsonpickle
 import multiprocessing
+import tqdm
 
 sys.path.append(os.getcwd())
 
@@ -104,30 +105,20 @@ def main():
     configPath = args.config
     resultPath = args.result
     cores = args.cores if args.cores > 0 and args.cores <= multiprocessing.cpu_count() else multiprocessing.cpu_count()
-    print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Using cores: {cores}')
+    print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
 
     parameterSpace = load(configPath)
-    run = Run(parameterSpace, cores, lambda n, d: print(f'Progress: {n} out of {d}', end='\r'))
+    bar = tqdm.tqdm()
+    def update(n ,d):
+        bar.total = d
+        bar.update(1)
+    run = Run(parameterSpace, cores, update)
     run.run()
+    bar.close()
 
     save(resultPath, run)
-
-    print(f'\nResult count: {len(run.runs)}')
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
     main()
-
-# def to_dict(obj):
-#     if isinstance(obj, list):
-#         out = list(map(lambda x: to_dict(x), obj))
-#     elif isinstance(obj, tuple):
-#         out = tuple(map(lambda x: to_dict(x), obj))
-#     elif (hasattr(obj, '__dict__')):
-#         out = {}
-#         for attr_name, attr_value in obj.__dict__.items():
-#             out[attr_name] = to_dict(attr_value)
-#     else:
-#         out = obj
-#     return out

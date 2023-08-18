@@ -31,4 +31,11 @@ Update requirements.txt using
 pip3 freeze > requirements.txt
 ```
 
+Generate Docker image
+```bash
+docker build -t kvnnap/python-image-processing .
+docker push kvnnap/python-image-processing
+docker run --rm -it -v $PWD/images:/app/images -v $PWD/config.json:/app/config.json:ro kvnnap/python-image-processing
+```
+
 Happy coding!

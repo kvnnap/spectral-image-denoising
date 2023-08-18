@@ -52,5 +52,6 @@ stack-data==0.6.2
 threadpoolctl==3.2.0
 tifffile==2023.4.12
 tornado==6.3.1
+tqdm==4.66.1
 traitlets==5.9.0
 wcwidth==0.2.6
