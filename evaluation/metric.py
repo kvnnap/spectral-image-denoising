@@ -2,10 +2,10 @@ import numpy as np
 from skimage.metrics import structural_similarity as ssim
 
 def local_mse(ref, noisy):
-    return np.sum((ref - noisy) ** 2)
+    return np.sum((ref - noisy) ** 2).item()
 
 def local_ssim(ref, noisy):
-    return ssim(ref, noisy, data_range=noisy.max() - noisy.min())
+    return ssim(ref, noisy, data_range=noisy.max() - noisy.min()).item()
 
 class MetricFactory:
     @staticmethod
