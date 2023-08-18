@@ -11,6 +11,7 @@ from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
 from denoiser import *
+from version import *
 
 class ParameterSpace:
     def __init__(self):
@@ -41,6 +42,7 @@ class Run:
         self.runsCompleted = 0
         self.totalRuns = 0
         self.runs = []
+        self.version = { 'commit' : git_commit,  'date' : git_date, 'dirty': git_dirty}
 
     @staticmethod
     def _task(dp):
@@ -96,7 +98,8 @@ def load(file_name):
         return jsonpickle.decode(fp.read())
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluates denoising using the parameter space provided in the input json file')
+    versionString = f'Commit: {git_commit} Date: {git_date} Dirty: {git_dirty}' if (len(git_commit) > 0) else 'Version N/A'
+    parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
     parser.add_argument('--cores', default=0, help='Number of cores to use. 0 uses maximum')
@@ -106,6 +109,7 @@ def main():
     resultPath = args.result
     cores = args.cores if args.cores > 0 and args.cores <= multiprocessing.cpu_count() else multiprocessing.cpu_count()
     print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
+    print(versionString)
 
     parameterSpace = load(configPath)
     bar = tqdm.tqdm()

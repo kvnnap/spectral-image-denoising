@@ -31,6 +31,12 @@ Update requirements.txt using
 pip3 freeze > requirements.txt
 ```
 
+Add version information. This will generate version.py
+
+```bash
+./postbuild.sh
+```
+
 Generate Docker image
 ```bash
 docker build -t kvnnap/python-image-processing .
