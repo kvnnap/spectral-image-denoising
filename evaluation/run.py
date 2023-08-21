@@ -11,6 +11,7 @@ from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
 from denoiser import *
+from denoiser_factory import *
 from utils.versioning import get_version
 
 class ParameterSpace:
