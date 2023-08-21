@@ -33,7 +33,7 @@ class WaveletDenoiser(Denoiser):
                 std.append(np.std(hvd))
 
         # Define the search space
-        space = list(map(lambda x: Real(0, x), std))
+        space = list(map(lambda x: Real(0.01, x), std))
 
         def objective_function(x):
             coeffCopy = copy.deepcopy(coeffs)
