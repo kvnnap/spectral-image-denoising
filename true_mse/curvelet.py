@@ -11,7 +11,7 @@ import json
 import sys
 sys.path.append('/workspaces/python-image-processing')
 
-from image_utils import *
+from utils.image import *
 
 def load_image(path):
     image = load_image_raw_file(path)

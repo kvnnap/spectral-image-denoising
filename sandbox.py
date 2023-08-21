@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from skimage import data, img_as_float
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error
-from image_utils import *
+from utils.image import *
 
 ref_image = load_image('images/dice_caustics/output_0.raw')
 image = load_image('images/dice_caustics/output_1.raw')

@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 from curvelops import FDCT2D
 from curvelops.plot import create_colorbar
 
-from image_utils import *
+from utils.image import *
 
 # %%
 # Setup

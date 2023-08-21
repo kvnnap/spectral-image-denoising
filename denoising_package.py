@@ -5,7 +5,7 @@ from skimage import data, img_as_float
 from skimage.util import random_noise
 from skimage.metrics import peak_signal_noise_ratio
 
-from image_utils import *
+from utils.image import *
 
 
 original = img_as_float(data.chelsea()[100:250, 50:300])

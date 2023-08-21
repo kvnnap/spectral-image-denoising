@@ -8,7 +8,7 @@ from scipy.optimize import differential_evolution
 import copy
 import json
 
-from image_utils import *
+from utils.image import *
 
 def load_image(path):
     image = load_image_raw_file(path)

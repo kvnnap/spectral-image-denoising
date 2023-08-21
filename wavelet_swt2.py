@@ -3,7 +3,7 @@ import pywt
 from matplotlib import pyplot as plt
 from pywt._doc_utils import wavedec2_keys, draw_2d_wp_basis
 
-from image_utils import *
+from utils.image import *
 
 x = load_image('images/dice_caustics/output_1.raw')
 orig_shape = x.shape

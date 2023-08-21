@@ -17,7 +17,7 @@ from curvelops.plot import (
     overlay_disks,
 )
 
-from image_utils import *
+from utils.image import *
 
 def load_image(path):
     image = load_image_raw_file(path)

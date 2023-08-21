@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from image_utils import *
+from utils.image import *
 
 ref_image = load_image_raw_file('images/cb_caustics/output_0.raw')
 ref_image = convert_to_grayscale(ref_image)

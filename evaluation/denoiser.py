@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 import pywt
-from image_utils import *
+from utils.image import *
 from skopt.space import Real
 
 class DenoiserRunParamsString:

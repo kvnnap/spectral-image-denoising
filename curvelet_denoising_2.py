@@ -3,7 +3,7 @@ import numpy as np
 import curvelops as cl
 import pywt
 
-from image_utils import *
+from utils.image import *
 
 fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
 

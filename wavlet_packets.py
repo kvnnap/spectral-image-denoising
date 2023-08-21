@@ -3,7 +3,7 @@ from PIL import Image
 import numpy as np
 import pywt
 
-from image_utils import *
+from utils.image import *
 
 # Load the image as a NumPy array
 #image = plt.imread("images/dice_2.png")

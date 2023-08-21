@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from image_utils import *
+from utils.image import *
 
 raw_image = load_image_raw_file('images/dice_2.raw')
 raw_image = convert_to_grayscale(raw_image)

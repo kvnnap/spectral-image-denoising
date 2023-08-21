@@ -4,7 +4,7 @@ from PIL import Image
 import pywt
 import cv2
 from scipy import ndimage
-from image_utils import *
+from utils.image import *
 
 
 def filter_std_dev(coeff, sigma):

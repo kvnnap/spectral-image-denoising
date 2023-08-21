@@ -3,7 +3,7 @@ import numpy as np
 import pywt
 import py_cwt2d
 
-from image_utils import *
+from utils.image import *
 
 def pad(A, shape):
    out = np.zeros(shape)

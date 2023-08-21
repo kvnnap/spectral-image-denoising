@@ -11,7 +11,7 @@ import copy
 import sys
 sys.path.append('/workspaces/python-image-processing')
 
-from image_utils import *
+from utils.image import *
 
 new_shape = (1024, 1024)
 
