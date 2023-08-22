@@ -1,32 +1,33 @@
-{
-    "py/object": "__main__.ParameterSpace",
-    "images": [
-        {
-            "py/tuple": [
-                "images/dice_caustics/output_0.raw",
-                [
-                    "images/dice_caustics/output_1.raw"
+[
+    {
+        "py/object": "__main__.ParameterSpace",
+        "images": [
+            {
+                "py/tuple": [
+                    "images/dice_caustics/output_0.raw",
+                    [
+                        "images/dice_caustics/output_1.raw"
+                    ]
                 ]
-            ]
-        }
-    ],
-    "metrics": [
-        "mse"
-    ],
-    "thresholds": [
-        "mult"
-    ],
-    "searchMethods": [
-        "naive",
-        "gp_minimize"
-    ],
-    "coefficientLengths": [
-        16
-    ],
-    "iterations": [
-        10
-    ],
-    "denoisers": [
-        "fourier"
-    ]
-}
+            }
+        ],
+        "metrics": [
+            "mse"
+        ],
+        "thresholds": [
+            "mult"
+        ],
+        "searchMethods": [
+            "naive"
+        ],
+        "coefficientLengths": [
+            16
+        ],
+        "iterations": [
+            10
+        ],
+        "denoisers": [
+            "fourier"
+        ]
+    }
+]

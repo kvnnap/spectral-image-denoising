@@ -22,7 +22,7 @@ class ParameterSpace:
         self.searchMethods = [] # naive, gp_minimize
         self.coefficientLengths = [] # how many coefficients should we optimise for? this is highly dependent on the method
         self.iterations = [] # applies to ALL
-        self.denoisers = [] # fourier, etc
+        self.denoisers = [] # fourier, wavelet, wavelet_swt, curvelet etc
 
 class RunResult:
     def __init__(self, denoiserParams, denoiserResult):
@@ -62,20 +62,20 @@ class Run:
         self.progress.update(self.runsCompleted, self.totalRuns)
     
     def run(self):
-        p = self.parameterSpace
-        denParams = []
-        for denoiserName in p.denoisers:
-            for img in p.images:
-                refImage = img[0]
-                images = img[1]
-                for image in images:
-                    for metric in p.metrics:
-                        for threshold in p.thresholds:
-                            for searchMethodName in p.searchMethods:
-                                for coeff in p.coefficientLengths:
-                                    for iteration in p.iterations:
-                                        denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, coeff, iteration, denoiserName)
-                                        denParams.append(denoiserParamsString)
+        for p in self.parameterSpace:
+            denParams = []
+            for denoiserName in p.denoisers:
+                for img in p.images:
+                    refImage = img[0]
+                    images = img[1]
+                    for image in images:
+                        for metric in p.metrics:
+                            for threshold in p.thresholds:
+                                for searchMethodName in p.searchMethods:
+                                    for coeff in p.coefficientLengths:
+                                        for iteration in p.iterations:
+                                            denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, coeff, iteration, denoiserName)
+                                            denParams.append(denoiserParamsString)
 
         self.totalRuns = len(denParams)
         # distribute tasks using multiprocessing
