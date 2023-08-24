@@ -12,21 +12,16 @@
             }
         ],
         "metrics": [
-            "mse",
             "ssim"
         ],
         "thresholds": [
-            "mult",
-            "hard",
-            "soft",
-            "garrote"
+            "mult"
         ],
         "searchMethods": [
-            "naive",
-            "gp_minimize"
+            "naive"
         ],
         "iterations": [
-            20
+            10
         ],
         "denoisers": [
             {

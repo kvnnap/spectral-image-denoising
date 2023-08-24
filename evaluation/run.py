@@ -1,19 +1,19 @@
 import sys
 import os
 import argparse
-import jsonpickle
 import multiprocessing
 import time
 import tqdm
 
-sys.path.append(os.getcwd())
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
-from denoiser import *
-from denoiser_factory import *
+from denoiser import DenoiserRunParams, DenoiserRunParamsString
+from denoiser_factory import DenoiserFactory
 from utils.versioning import get_version
+from utils.serialisation import save, load
 
 class ParameterSpace:
     def __init__(self):
@@ -97,14 +97,6 @@ class Run:
             pool.close()
             pool.join()
             self.runs = list(map(lambda x: x.get(), asyncResults))
-
-def save(file_name, obj):
-        with open(file_name, 'w') as fp:
-            fp.write(jsonpickle.encode(obj)) # use , make_refs=False to avoid the py/id stuff. or unpicklable=False (extreme)
-    
-def load(file_name):
-    with open(file_name, 'r') as fp:
-        return jsonpickle.decode(fp.read())
 
 def main():
     versionString = get_version().to_string()

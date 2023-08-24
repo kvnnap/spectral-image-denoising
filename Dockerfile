@@ -38,14 +38,14 @@ FROM python:slim
 ARG USER=kevin
 ARG HOME=/home/$USER
 RUN useradd -ms /bin/bash $USER \
-    && mkdir /app \
-    && chown $USER:$USER /app
+    && mkdir -p /app/data \
+    && chown -R $USER:$USER /app
 USER $USER
-WORKDIR /app
+WORKDIR /app/data
 COPY --chown=$USER:$USER --from=builder $HOME/opt $HOME/opt
 COPY --chown=$USER:$USER --from=builder $HOME/.local $HOME/.local
 COPY --chown=$USER:$USER evaluation /app/evaluation
 COPY --chown=$USER:$USER utils /app/utils
 COPY --chown=$USER:$USER version.py /app
 ENV FFTW=$HOME/opt/fftw-2.1.5 FDCT=$HOME/opt/CurveLab-2.1.3
-CMD python3 /app/evaluation/run.py
+ENTRYPOINT ['python3', '/app/evaluation/run.py']
