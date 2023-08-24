@@ -123,6 +123,7 @@ def main():
     bar.close()
 
     save(resultPath, run)
+    save(f'{resultPath}.norefs.json', run, False)
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
