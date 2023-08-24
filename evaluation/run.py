@@ -3,6 +3,7 @@ import os
 import argparse
 import jsonpickle
 import multiprocessing
+import time
 import tqdm
 
 sys.path.append(os.getcwd())
@@ -20,14 +21,14 @@ class ParameterSpace:
         self.metrics = [] # MSE, SSIM
         self.thresholds = [] # mult, soft, hard, garrote
         self.searchMethods = [] # naive, gp_minimize
-        self.coefficientLengths = [] # how many coefficients should we optimise for? this is highly dependent on the method
         self.iterations = [] # applies to ALL
         self.denoisers = [] # fourier, wavelet, wavelet_swt, curvelet etc
 
 class RunResult:
-    def __init__(self, denoiserParams, denoiserResult):
+    def __init__(self, denoiserParams, denoiserResult, time):
         self.denoiserParams = denoiserParams
         self.denoiserResult = denoiserResult
+        self.time = time
 
 class Progress:
     def __init__(self, fn):
@@ -48,14 +49,16 @@ class Run:
     @staticmethod
     def _task(dp):
         pairImage = dp.pairImage
-        coeff = dp.coefficientLength
         iteration = dp.iterations
         metricMethod = MetricFactory.create(dp.metric)
         thresholdMethod = ThresholdFactory.create(dp.thresholding)
         searchMethod = SearchFactory.create(dp.search)
         denoiserMethod = DenoiserFactory.create(dp.denoiser)
-        denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), metricMethod, thresholdMethod, searchMethod, coeff, iteration, denoiserMethod)
-        return RunResult(dp, denoiserMethod.run(denoiserParams))
+        denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), metricMethod, thresholdMethod, searchMethod, iteration, denoiserMethod)
+        start = time.perf_counter_ns()
+        run = denoiserMethod.run(denoiserParams)
+        finish = time.perf_counter_ns()
+        return RunResult(dp, run, finish - start)
 
     def _update(self, _):
         self.runsCompleted += 1
@@ -64,7 +67,13 @@ class Run:
     def run(self):
         for p in self.parameterSpace:
             denParams = []
-            for denoiserName in p.denoisers:
+
+            # Generate list of all possible denoiser configurations
+            denoiserConfigs = []
+            for denoiserConfig in p.denoisers:
+                denoiserConfigs.extend(DenoiserFactory.unpack_config(denoiserConfig))
+
+            for denoiserConfig in denoiserConfigs:
                 for img in p.images:
                     refImage = img[0]
                     images = img[1]
@@ -72,10 +81,9 @@ class Run:
                         for metric in p.metrics:
                             for threshold in p.thresholds:
                                 for searchMethodName in p.searchMethods:
-                                    for coeff in p.coefficientLengths:
-                                        for iteration in p.iterations:
-                                            denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, coeff, iteration, denoiserName)
-                                            denParams.append(denoiserParamsString)
+                                    for iteration in p.iterations:
+                                        denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, iteration, denoiserConfig)
+                                        denParams.append(denoiserParamsString)
 
         self.totalRuns = len(denParams)
         # distribute tasks using multiprocessing

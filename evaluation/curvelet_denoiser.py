@@ -5,7 +5,9 @@ from skopt.space import Real
 from denoiser import Denoiser
 
 class CurveletDenoiser(Denoiser):
-
+    def __init__(self, config):
+        super().__init__()
+        
     @staticmethod
     def get_fdct_struct(c_str, x, thresholding):
         c_copy = copy.deepcopy(c_str)

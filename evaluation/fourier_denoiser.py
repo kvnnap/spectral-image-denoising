@@ -5,6 +5,10 @@ from skopt.space import Real
 from denoiser import Denoiser
 
 class FourierDenoiser(Denoiser):
+    def __init__(self, config):
+        super().__init__()
+        self.coefficientLength = config['coefficientLength'] if 'coefficientLength' in config else 16
+
     # Function to create elliptical masks for multiple frequencies
     @staticmethod
     def create_multimask(image_shape, attenuations):
@@ -58,7 +62,7 @@ class FourierDenoiser(Denoiser):
             return score
         
         # build space
-        space = [Real(0, 1)] * denoiserParams.coefficientLength
+        space = [Real(0, 1)] * self.coefficientLength
 
         result = denoiserParams.searchMethod(objective_function, space, denoiserParams.iterations)
         return result

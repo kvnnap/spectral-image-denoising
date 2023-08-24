@@ -6,7 +6,8 @@ from skopt.space import Real
 from denoiser import Denoiser
 
 class WaveletSwtDenoiser(Denoiser):
-    def __init__(self):
+    def __init__(self, config):
+        super().__init__()
         self.wavelet_name = 'sym2'
         self.level = 0
         self.orig_shape = (0, 0)

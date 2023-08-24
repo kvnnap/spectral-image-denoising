@@ -12,22 +12,31 @@
             }
         ],
         "metrics": [
-            "mse"
+            "mse",
+            "ssim"
         ],
         "thresholds": [
-            "mult"
+            "mult",
+            "hard",
+            "soft",
+            "garrote"
         ],
         "searchMethods": [
-            "naive"
-        ],
-        "coefficientLengths": [
-            16
+            "naive",
+            "gp_minimize"
         ],
         "iterations": [
-            10
+            20
         ],
         "denoisers": [
-            "fourier"
+            {
+                "name": "fourier",
+                "coefficientLength": [
+                    16,
+                    32
+                ]
+            },
+            "wavelet"
         ]
     }
 ]
