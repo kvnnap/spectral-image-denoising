@@ -17,6 +17,7 @@ from utils.serialisation import save, load
 
 class ParameterSpace:
     def __init__(self):
+        self.name = 'unnamed'
         self.images = [] # each element is a tuple (ref, images)
         self.metrics = [] # MSE, SSIM
         self.thresholds = [] # mult, soft, hard, garrote
@@ -82,7 +83,7 @@ class Run:
                             for threshold in p.thresholds:
                                 for searchMethodName in p.searchMethods:
                                     for iteration in p.iterations:
-                                        denoiserParamsString = DenoiserRunParamsString((refImage, image), metric, threshold, searchMethodName, iteration, denoiserConfig)
+                                        denoiserParamsString = DenoiserRunParamsString(p.name, (refImage, image), metric, threshold, searchMethodName, iteration, denoiserConfig)
                                         denParams.append(denoiserParamsString)
 
         self.totalRuns = len(denParams)

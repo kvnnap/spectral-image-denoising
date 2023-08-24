@@ -1,6 +1,7 @@
 [
     {
         "py/object": "__main__.ParameterSpace",
+        "name": "dice",
         "images": [
             {
                 "py/tuple": [
