@@ -18,7 +18,7 @@ class Result:
 # Otherwise, we need to attach context to the denoiser
 def naive(fn, space, n_calls):
     subdiv = max(math.ceil((n_calls - 1) / len(space)) + 1, 2)
-    x = np.zeros_like(space).tolist()
+    x = [s.low for s in space]
     x_subdiv = list(map(lambda x: np.linspace(x.low, x.high, subdiv).tolist(), space))
     #scores = [[] for _ in range(len(x_subdiv))]
     scores_global = []
