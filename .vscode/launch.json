@@ -5,6 +5,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
+            "args": ["--cores", "1"],
             "justMyCode": true
         }
     ]

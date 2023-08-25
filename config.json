@@ -16,10 +16,10 @@
             "ssim"
         ],
         "thresholds": [
-            "mult"
+            "garrote"
         ],
         "searchMethods": [
-            "naive"
+            "gp_minimize"
         ],
         "iterations": [
             10
@@ -32,7 +32,27 @@
                     32
                 ]
             },
-            "wavelet"
+            {
+                "name": "wavelet",
+                "level": [
+                    0
+                ],
+                "waveletName": [
+                    "sym2"
+                ]
+            },
+            {
+                "name": "wavelet_swt",
+                "level": [
+                    6
+                ],
+                "waveletName": [
+                    "sym2"
+                ]
+            },
+            {
+                "name": "curvelet"
+            }
         ]
     }
 ]
