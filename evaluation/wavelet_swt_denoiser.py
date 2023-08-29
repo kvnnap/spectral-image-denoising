@@ -17,7 +17,7 @@ class WaveletSwtDenoiser(Denoiser):
         c = 0
         for coeff in coeffs:
             for img in coeff[1]:
-                tImg = thresholding(img, x[c])
+                tImg = thresholding.fn(img, x[c])
                 img[True] = tImg
                 c += 1
         return coeffs
@@ -38,13 +38,13 @@ class WaveletSwtDenoiser(Denoiser):
         level = pywt.swt_max_level(max(image.shape)) if (self.level == 0) else self.level
         coeffs = pywt.swt2(image, self.waveletName, level=level)
 
-        std = []
+        measure = []
         for c in coeffs:
             for hvd in c[1]:
-                std.append(np.std(hvd))
+                measure.append(np.std(hvd))
 
         # Define the search space
-        space = list(map(lambda x: Real(0.01, x), std))
+        space = denoiserParams.thresholding.get_space(measure)
 
         def objective_function(x):
             coeffCopy = WaveletSwtDenoiser.filter_coeffs(coeffs, x, denoiserParams.thresholding)

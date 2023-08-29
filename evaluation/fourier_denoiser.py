@@ -28,10 +28,10 @@ class FourierDenoiser(Denoiser):
 
     # Fourier methods
     @staticmethod
-    def get_image_ifft(image_shape, magnitude, phase_spectrum, treshold_fn, coeffs):
+    def get_image_ifft(image_shape, magnitude, phase_spectrum, thresholding, coeffs):
         mag = copy.deepcopy(magnitude)
         m = FourierDenoiser.create_multimask(image_shape, coeffs)
-        mag = treshold_fn(mag, m)
+        mag = thresholding.fn(mag, m)
 
         reconstructed_fft_image = mag * np.exp(1j * phase_spectrum)
         reconstructed_fft_image = np.fft.ifftshift(reconstructed_fft_image)
@@ -62,7 +62,7 @@ class FourierDenoiser(Denoiser):
             return score
         
         # build space
-        space = [Real(0, 1)] * self.coefficientLength
+        space = denoiserParams.thresholding.get_space([1] * self.coefficientLength)
 
         result = denoiserParams.searchMethod(objective_function, space, denoiserParams.iterations)
         return result

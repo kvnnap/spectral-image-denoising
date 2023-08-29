@@ -13,7 +13,7 @@ class CurveletDenoiser(Denoiser):
         c_copy = copy.deepcopy(c_str)
         for i, s in enumerate(c_copy):
             for j, w in enumerate(s):
-                c_copy[i][j] = thresholding(c_copy[i][j], x[i])
+                c_copy[i][j] = thresholding.fn(c_copy[i][j], x[i])
         return c_copy
 
     # need to parameterise wavelet_name, level, masking type (soft, hard)
@@ -26,10 +26,13 @@ class CurveletDenoiser(Denoiser):
         coeffs = FDCT @ image
         c_struct = FDCT.struct(coeffs)
 
-        std = []
+        measure = []
         for i, s in enumerate(c_struct):
-            std.append(5)
-        space = list(map(lambda x: Real(0, x), std))
+            wedges_flattened = []
+            for j, w in enumerate(s):
+                wedges_flattened.extend(c_struct[i][j].flatten())
+            measure.append(np.std(wedges_flattened))
+        space = denoiserParams.thresholding.get_space(measure)
 
         def objective_function(x):
             c_copy = CurveletDenoiser.get_fdct_struct(c_struct, x, denoiserParams.thresholding)
