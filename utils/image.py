@@ -29,11 +29,11 @@ def tone_map(image_data):
     # Return the tone mapped pixel data
     return tone_mapped_data
 
-def load_image(path, gray = True, tone_map=True):
+def load_image(path, gray = True, tm = True):
     image = load_image_raw_file(path)
     if (gray):
         image = convert_to_grayscale(image)
-    if (tone_map):
+    if (tm):
         image = alpha_correction_chain(tone_map(image))
     return image
 

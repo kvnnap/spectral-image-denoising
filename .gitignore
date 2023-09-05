@@ -5,6 +5,7 @@ __pycache__/
 CurveLab-2.1.3.tar.gz
 Desmystifying_Curvelets.ipynb
 result.json
+result.json.norefs.json
 sigmoid.npz
 
 version.py
