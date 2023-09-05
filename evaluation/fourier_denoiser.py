@@ -1,7 +1,5 @@
 import numpy as np
 import copy
-from utils.image import *
-from skopt.space import Real
 from denoiser import Denoiser
 
 class FourierDenoiser(Denoiser):
@@ -12,7 +10,7 @@ class FourierDenoiser(Denoiser):
     # Function to create elliptical masks for multiple frequencies
     @staticmethod
     def create_multimask(image_shape, attenuations):
-        rows, cols = image_shape
+        rows, cols, *_ = image_shape
         center_row, center_col = rows // 2, cols // 2
 
         y, x = np.ogrid[:rows, :cols]
@@ -51,8 +49,8 @@ class FourierDenoiser(Denoiser):
         return (magnitude_spectrum, phase_spectrum)
 
     def run(self, denoiserParams):
-        ref_image = load_image(denoiserParams.pairImage[0])
-        image = load_image(denoiserParams.pairImage[1])
+        ref_image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[0])
+        image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[1])
 
         (magnitude_spectrum, phase_spectrum) = FourierDenoiser.get_mag_phase(image)
 

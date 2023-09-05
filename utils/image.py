@@ -19,8 +19,8 @@ def convert_to_grayscale(image_data):
     # See https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale for more information
     grayscale_data = 0.299*image_data[:,:,0] + 0.587*image_data[:,:,1] + 0.114*image_data[:,:,2]
 
-    # Convert the pixel data to a 2D numpy array and return it
-    return grayscale_data
+    # Convert the 2D numpy array to one with shape (height, width, 1) (remove braces to get 2d shape)
+    return grayscale_data[:, :, np.newaxis]
 
 def tone_map(image_data):
     # Perform tone mapping on the pixel data using the formula x/(x+1)
@@ -29,11 +29,25 @@ def tone_map(image_data):
     # Return the tone mapped pixel data
     return tone_mapped_data
 
-def load_image(path):
+def load_image(path, gray = True, tone_map=True):
     image = load_image_raw_file(path)
-    image = convert_to_grayscale(image)
-    image = alpha_correction_chain(tone_map(image))
+    if (gray):
+        image = convert_to_grayscale(image)
+    if (tone_map):
+        image = alpha_correction_chain(tone_map(image))
     return image
+
+def get_channel_count(image):
+    return image.shape[2] if (len(image.shape) > 2) else 1
+
+def seperate_channels(image):
+    if (len(image.shape) > 2):
+        return [image[:,:,i] for i in range(0, get_channel_count(image))]
+    else:
+        return [image]
+    
+def merge_channels(imageArray):
+    return np.stack(imageArray, axis=2)
 
 def alpha_correction_chain(data):
     gamma = 2.4
@@ -99,10 +113,10 @@ def resize_to_nearest_power_of_2_square(img):
     return np.pad(img, ((0, s - img.shape[0]), (0, s - img.shape[1])), mode='constant')
 
 def crop_enlarge(img, shape):
+    # Cropping
     if (shape[0] < img.shape[0]):
-        img = img[:shape[0]]
+        img = img[:shape[0], :, :]
     if (shape[1] < img.shape[1]):
-        img = img.T
-        img = img[:shape[1]]
-        img = img.T
-    return np.pad(img, ((0, shape[0] - img.shape[0]), (0, shape[1] - img.shape[1])), mode='constant')
+        img = img[:, :shape[1], :]
+    # Enlargement
+    return np.pad(img, ((0, shape[0] - img.shape[0]), (0, shape[1] - img.shape[1]), (0, 0)), mode='constant')

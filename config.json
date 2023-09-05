@@ -12,6 +12,9 @@
                 ]
             }
         ],
+        "imageLoaders":[
+            "gray"
+        ],
         "metrics": [
             "ssim"
         ],
