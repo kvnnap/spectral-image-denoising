@@ -14,7 +14,7 @@ from denoiser import DenoiserRunParams, DenoiserRunParamsString
 from denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
 from utils.versioning import get_version
-from utils.serialisation import save, load
+from utils.serialisation import save, load, print_obj
 
 class ParameterSpace:
     def __init__(self):
@@ -59,10 +59,15 @@ class Run:
         searchMethod = SearchFactory.create(dp.search)
         denoiserMethod = DenoiserFactory.create(dp.denoiser)
         denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), imageLoaderMethod, metricMethod, thresholdMethod, searchMethod, iteration, denoiserMethod)
-        start = time.perf_counter_ns()
-        run = denoiserMethod.run(denoiserParams)
-        finish = time.perf_counter_ns()
-        return RunResult(dp, run, finish - start)
+        try:
+            start = time.perf_counter_ns()
+            run = denoiserMethod.run(denoiserParams)
+            finish = time.perf_counter_ns()
+            return RunResult(dp, run, finish - start)
+        except Exception as e:
+            print(f"Exception in _task: {e}")
+            print_obj(dp)
+            raise
 
     def _update(self, _):
         self.runsCompleted += 1

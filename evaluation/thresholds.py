@@ -1,5 +1,4 @@
 import pywt
-import numpy as np
 from skopt.space import Real
 
 # class Space:

@@ -8,7 +8,7 @@ def local_ssim(ref, noisy):
     range = noisy.max() - noisy.min()
     if (range == 0):
         return 0
-    return -ssim(ref, noisy, data_range=range).item()
+    return -ssim(ref, noisy, data_range=range, channel_axis=2).item()
 
 class MetricFactory:
     @staticmethod

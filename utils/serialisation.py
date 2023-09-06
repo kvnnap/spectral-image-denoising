@@ -7,3 +7,6 @@ def save(file_name, obj, make_refs=True):
 def load(file_name):
     with open(file_name, 'r') as fp:
         return jsonpickle.decode(fp.read())
+    
+def print_obj(obj):
+     print(f"{jsonpickle.encode(obj, unpicklable=False)}")
