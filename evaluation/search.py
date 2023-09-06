@@ -4,14 +4,7 @@ import math
 from skopt import gp_minimize
 import copy
 
-# fn to minimize, space is an array [x[0] range, x[1] range, etc..]
-class Result:
-    def __init__(self, x_min, x_iters, score_min, scores_global):
-        self.x = x_min
-        self.x_iters = x_iters
-        self.fun = score_min
-        #self.scores = scores
-        self.func_vals = scores_global
+from core.search import Result
 
 # Since n_calls determines the number of times we call fn,
 # determine the subdivisions using n_calls for the time being

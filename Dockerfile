@@ -44,6 +44,7 @@ USER $USER
 WORKDIR /app/data
 COPY --chown=$USER:$USER --from=builder $HOME/opt $HOME/opt
 COPY --chown=$USER:$USER --from=builder $HOME/.local $HOME/.local
+COPY --chown=$USER:$USER core /app/core
 COPY --chown=$USER:$USER evaluation /app/evaluation
 COPY --chown=$USER:$USER utils /app/utils
 COPY --chown=$USER:$USER version.py /app

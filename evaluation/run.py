@@ -7,31 +7,16 @@ import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from core.run import RunData, RunResult
+from core.denoiser import DenoiserRunParamsString
 from metric import MetricFactory
 from thresholds import ThresholdFactory
 from search import SearchFactory
-from denoiser import DenoiserRunParams, DenoiserRunParamsString
+from denoiser import DenoiserRunParams
 from denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
 from utils.versioning import get_version
 from utils.serialisation import save, load, print_obj
-
-class ParameterSpace:
-    def __init__(self):
-        self.name = 'unnamed'
-        self.images = [] # each element is a tuple (ref, images)
-        self.imageLoaders = [] # gray, gray_tm, rgb, rgb_tm
-        self.metrics = [] # MSE, SSIM
-        self.thresholds = [] # mult, soft, hard, garrote
-        self.searchMethods = [] # naive, gp_minimize
-        self.iterations = [] # applies to ALL
-        self.denoisers = [] # fourier, wavelet, wavelet_swt, curvelet etc
-
-class RunResult:
-    def __init__(self, denoiserParams, denoiserResult, time):
-        self.denoiserParams = denoiserParams
-        self.denoiserResult = denoiserResult
-        self.time = time
 
 class Progress:
     def __init__(self, fn):
@@ -131,10 +116,13 @@ def main():
     run.run()
     bar.close()
 
-    save(resultPath, run)
-    save(f'{resultPath}.norefs.json', run, False)
+    runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
+
+    save(resultPath, runData)
+    save(f'{resultPath}.norefs.json', runData, False)
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main()

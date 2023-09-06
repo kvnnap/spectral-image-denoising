@@ -1,6 +1,6 @@
 [
     {
-        "py/object": "__main__.ParameterSpace",
+        "py/object": "core.run.ParameterSpace",
         "name": "dice",
         "images": [
             {
@@ -13,7 +13,7 @@
             }
         ],
         "imageLoaders":[
-            "gray"
+            "rgb_tm"
         ],
         "metrics": [
             "ssim"
