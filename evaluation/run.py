@@ -124,5 +124,5 @@ def main():
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
+    multiprocessing.set_start_method('forkserver')
     main()
