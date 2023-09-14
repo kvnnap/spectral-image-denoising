@@ -1,7 +1,7 @@
 import sys
 import os
 import argparse
-import multiprocessing
+import multiprocessing as mp
 import time
 import tqdm
 
@@ -87,10 +87,11 @@ class Run:
                 self.runs.append(Run._task(denoiserParams))
                 self._update(None)
         else:
-            pool = multiprocessing.Pool(processes=min(self.cores, len(denParams)))
-            asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
-            pool.close()
-            pool.join()
+            asyncResults = []
+            with mp.Pool(processes=min(self.cores, len(denParams)), maxtasksperchild=1) as pool:
+                asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
+                pool.close()
+                pool.join()
             self.runs = list(map(lambda x: x.get(), asyncResults))
 
 def main():
@@ -103,7 +104,7 @@ def main():
 
     configPath = args.config
     resultPath = args.result
-    cores = args.cores if args.cores > 0 and args.cores <= multiprocessing.cpu_count() else multiprocessing.cpu_count()
+    cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
     print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
     print(versionString)
 
@@ -124,5 +125,5 @@ def main():
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
+    mp.set_start_method('spawn')
     main()
