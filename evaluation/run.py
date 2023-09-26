@@ -21,11 +21,11 @@ from utils.serialisation import save, load, print_obj
 class Progress:
     def __init__(self, fn):
         self.callback = fn
-    def update(self, current, total):
-        self.callback(current, total)
+    def update(self, current, total, result):
+        self.callback(current, total, result)
 
 class Run:
-    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d: None):
+    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d,r: None):
         self.parameterSpace = parameterSpace
         self.progress = Progress(monitoringFn)
         self.cores = max(1, cores)
@@ -54,9 +54,9 @@ class Run:
             print_obj(dp)
             raise
 
-    def _update(self, _):
+    def _update(self, result):
         self.runsCompleted += 1
-        self.progress.update(self.runsCompleted, self.totalRuns)
+        self.progress.update(self.runsCompleted, self.totalRuns, result)
     
     def run(self):
         for p in self.parameterSpace:
@@ -66,7 +66,7 @@ class Run:
             denoiserConfigs = []
             for denoiserConfig in p.denoisers:
                 denoiserConfigs.extend(DenoiserFactory.unpack_config(denoiserConfig))
-
+            
             for denoiserConfig in denoiserConfigs:
                 for imageLoader in p.imageLoaders:
                     for img in p.images:
@@ -77,7 +77,7 @@ class Run:
                                 for threshold in p.thresholds:
                                     for searchMethodName in p.searchMethods:
                                         for iteration in p.iterations:
-                                            denoiserParamsString = DenoiserRunParamsString(p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig)
+                                            denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig)
                                             denParams.append(denoiserParamsString)
 
         self.totalRuns = len(denParams)
@@ -99,18 +99,21 @@ def main():
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
+    parser.add_argument('--temp', default='temp.json', help='Where to save intermediate JSON Run objects')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
     args = parser.parse_args()
 
     configPath = args.config
     resultPath = args.result
+    tempPath = args.temp
     cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
     print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
     print(versionString)
 
     parameterSpace = load(configPath)
     bar = tqdm.tqdm()
-    def update(n ,d):
+    def update(n, d, result):
+        save(tempPath, result, write_mode='a')
         bar.total = d
         bar.update(1)
     run = Run(parameterSpace, cores, update)

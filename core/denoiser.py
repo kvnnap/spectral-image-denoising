@@ -1,5 +1,6 @@
 class DenoiserRunParamsString:
-    def __init__(self, name, pairImage, imageLoader, metric, thresholding, search, iterations, denoiser):
+    def __init__(self, id, name, pairImage, imageLoader, metric, thresholding, search, iterations, denoiser):
+        self.id = id
         self.name = name
         self.pairImage = pairImage
         self.imageLoader = imageLoader
