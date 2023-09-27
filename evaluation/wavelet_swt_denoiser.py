@@ -2,7 +2,7 @@ import numpy as np
 import copy
 import pywt
 from utils.image import *
-from denoiser import Denoiser
+from evaluation.denoiser import Denoiser
 
 class WaveletSwtDenoiser(Denoiser):
     def __init__(self, config):

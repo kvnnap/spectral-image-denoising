@@ -1,6 +1,6 @@
 import copy
 import curvelops as cl
-from denoiser import Denoiser
+from evaluation.denoiser import Denoiser
 from utils.image import *
 
 class CurveletDenoiser(Denoiser):

@@ -1,7 +1,7 @@
-from fourier_denoiser import FourierDenoiser
-from wavelet_denoiser import WaveletDenoiser
-from wavelet_swt_denoiser import WaveletSwtDenoiser
-from curvelet_denoiser import CurveletDenoiser
+from evaluation.fourier_denoiser import FourierDenoiser
+from evaluation.wavelet_denoiser import WaveletDenoiser
+from evaluation.wavelet_swt_denoiser import WaveletSwtDenoiser
+from evaluation.curvelet_denoiser import CurveletDenoiser
 import itertools
 
 class DenoiserFactory:

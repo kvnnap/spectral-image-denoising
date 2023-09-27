@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from denoiser import Denoiser
+from evaluation.denoiser import Denoiser
 
 class FourierDenoiser(Denoiser):
     def __init__(self, config):
