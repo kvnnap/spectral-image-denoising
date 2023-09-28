@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 from evaluation.denoiser import Denoiser
+from utils.image import seperate_channels, merge_channels
 
 class FourierDenoiser(Denoiser):
     def __init__(self, config):
@@ -32,21 +33,25 @@ class FourierDenoiser(Denoiser):
         mag = thresholding.fn(mag, m)
 
         reconstructed_fft_image = mag * np.exp(1j * phase_spectrum)
-        reconstructed_fft_image = np.fft.ifftshift(reconstructed_fft_image)
-        return np.fft.ifft2(reconstructed_fft_image).real
+        reconstructed_fft_image = np.transpose(reconstructed_fft_image, (2, 0, 1))
+        reconstructed_fft_image = list(map(lambda x: np.fft.ifft2(np.fft.ifftshift(x)).real, reconstructed_fft_image))
+        return merge_channels(reconstructed_fft_image)
     
     @staticmethod
     def get_mag_phase(image):
-        # Step 2: Perform the real-to-complex Fourier transform - since input is real
-        fft_image = np.fft.fft2(image)
+        retList = []
+        for im in seperate_channels(image):
+            # Step 2: Perform the real-to-complex Fourier transform - since input is real
+            fft_image = np.fft.fft2(im)
 
-        # Step 3: Shift zero-frequency components to the center
-        fft_shifted = np.fft.fftshift(fft_image)
+            # Step 3: Shift zero-frequency components to the center
+            fft_shifted = np.fft.fftshift(fft_image)
 
-        # Get mag and phase
-        magnitude_spectrum = np.abs(fft_shifted)
-        phase_spectrum = np.angle(fft_shifted)
-        return (magnitude_spectrum, phase_spectrum)
+            # Get mag and phase
+            magnitude_spectrum = np.abs(fft_shifted)
+            phase_spectrum = np.angle(fft_shifted)
+            retList.append((magnitude_spectrum, phase_spectrum))
+        return tuple([np.stack(list(x), axis=-1) for x in zip(*retList)])
 
     def run(self, denoiserParams):
         ref_image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[0])

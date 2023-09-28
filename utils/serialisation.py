@@ -10,3 +10,6 @@ def load(file_name):
     
 def print_obj(obj):
      print(f"{jsonpickle.encode(obj, unpicklable=False)}")
+
+def to_string_obj(obj):
+     return f"{jsonpickle.encode(obj, unpicklable=False)}"
