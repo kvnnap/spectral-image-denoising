@@ -3,9 +3,12 @@ import os
 import math
 import argparse
 import matplotlib.pyplot as plt
+import tkinter as tk
+
+from tksheet import Sheet
+from functools import partial
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/evaluation')
 
 from evaluation.denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
@@ -14,10 +17,6 @@ from evaluation.thresholds import ThresholdFactory
 
 from utils.versioning import get_version
 from utils.serialisation import to_string_obj, load, print_obj
-
-from tksheet import Sheet
-import tkinter as tk
-
 
 class demo(tk.Tk):
     def __init__(self, runData):
@@ -42,6 +41,7 @@ class demo(tk.Tk):
         
         # continue
         self.runData = runData
+        self.rowData = row
         self.grid_columnconfigure(0, weight = 1)
         self.grid_rowconfigure(0, weight = 1)
         self.frame = tk.Frame(self)
@@ -50,29 +50,32 @@ class demo(tk.Tk):
         self.sheet = Sheet(self.frame,
                            data = row, header=header)
         self.sheet.enable_bindings('toggle_select', 'single_select', 'row_select', 'column_select', 'right_click_popup_menu')
-        self.sheet.popup_menu_add_command("sort", self.sort)
+        self.sheet.popup_menu_add_command("sort asc", partial(self.sort, False))
+        self.sheet.popup_menu_add_command("sort desc", partial(self.sort, True))
         self.sheet.extra_bindings([('all_select_events', self.row_select)])
         self.frame.grid(row = 0, column = 0, sticky = "nswe")
         self.sheet.grid(row = 0, column = 0, sticky = "nswe")
 
-    def sort(self, event = None):
-        cols = self.sheet.get_selected_columns()
-        print(cols)
-        print (self.sheet.get_column_data(0))
+    def sort(self, reverse=False, event = None):
+        columnId = self.sheet.get_selected_columns().pop()
+        self.rowData.sort(key=lambda row: row[columnId], reverse=reverse)
+        self.sheet.set_sheet_data(self.rowData)
 
     def row_select(self, event = None):
         if event[0] == 'select_row':
-            event[1]
-            print(event)
             self.show_run(event[1])
 
-    def show_run(self, run_id):
-        run = self.runData.runs[run_id]
+    def show_run(self, rowId):
+        # get run_Id from row_id
+        runId = self.sheet.get_cell_data(rowId, 0)
+        run = next((x for x in self.runData.runs if x.denoiserParams.id == runId), None)
+        if run is None:
+            return
+        
         dp = run.denoiserParams
 
         pairImage = dp.pairImage
         imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
-        metricMethod = MetricFactory.create(dp.metric)
         thresholdMethod = ThresholdFactory.create(dp.thresholding)
         denoiserMethod = DenoiserFactory.create(dp.denoiser)
 
