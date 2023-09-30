@@ -21,6 +21,9 @@ class WaveletSwtDenoiser(Denoiser):
                     c += 1
 
     def decompose(self, image):
+        new_shape = next_power_of_two(max(image.shape))
+        new_shape = (new_shape, new_shape)
+        image = crop_enlarge(image, new_shape)
         level = pywt.swt_max_level(max(image.shape[:2])) if (self.level == 0) else self.level
         coeffs = list(map(lambda c: pywt.swt2(c, self.waveletName, level=level), seperate_channels(image)))
         return coeffs
@@ -38,9 +41,6 @@ class WaveletSwtDenoiser(Denoiser):
         ref_image = crop_enlarge(ref_image, orig_shape)
 
         image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[1])
-        image = crop_enlarge(image, new_shape)
-        #image = crop_enlarge(image, orig_shape)
-
         coeffs = self.decompose(image)
 
         # np.stack([coeffs[x][i] for x in range(0, len(coeffs))], axis=3)

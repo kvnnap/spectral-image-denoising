@@ -18,7 +18,22 @@ from evaluation.thresholds import ThresholdFactory
 from utils.versioning import get_version
 from utils.serialisation import to_string_obj, load, print_obj
 
-class demo(tk.Tk):
+class ResultImageProcessor():
+    def __init__(self, run):
+        dp = run.denoiserParams
+        self.run = run
+        self.imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
+        self.thresholdMethod = ThresholdFactory.create(dp.thresholding)
+        self.denoiserMethod = DenoiserFactory.create(dp.denoiser)
+        self.image = self.imageLoaderMethod(dp.pairImage[1])
+    
+    def get(self, coeffId = None):
+        coeffs = self.run.denoiserResult.x if coeffId is None else self.run.denoiserResult.x_iters[coeffId]
+        den = self.denoiserMethod.get_image(self.image, coeffs, self.thresholdMethod)
+        den_coeff = self.denoiserMethod.get_ceoff_image(self.image, coeffs)
+        return (self.image, den, den_coeff)
+
+class ResultViewer(tk.Tk):
     def __init__(self, runData):
         tk.Tk.__init__(self)
 
@@ -40,6 +55,8 @@ class demo(tk.Tk):
             ])
         
         # continue
+        self.title('Result Explorer')
+        self.loading = False
         self.runData = runData
         self.rowData = row
         self.grid_columnconfigure(0, weight = 1)
@@ -49,7 +66,7 @@ class demo(tk.Tk):
         self.frame.grid_rowconfigure(0, weight = 1)
         self.sheet = Sheet(self.frame,
                            data = row, header=header)
-        self.sheet.enable_bindings('toggle_select', 'single_select', 'row_select', 'column_select', 'right_click_popup_menu')
+        self.sheet.enable_bindings('toggle_select', 'single_select', 'row_select', 'column_select', 'right_click_popup_menu', 'column_width_resize')
         self.sheet.popup_menu_add_command("sort asc", partial(self.sort, False))
         self.sheet.popup_menu_add_command("sort desc", partial(self.sort, True))
         self.sheet.extra_bindings([('all_select_events', self.row_select)])
@@ -65,44 +82,58 @@ class demo(tk.Tk):
         if event[0] == 'select_row':
             self.show_run(event[1])
 
+    def toggle_loading(self):
+        self.loading = not self.loading
+        if self.loading:
+            self.title('Result Explorer - Loading')
+        else:
+            self.title('Result Explorer')
+        self.update()
+
     def show_run(self, rowId):
+        if (self.loading):
+            return
         # get run_Id from row_id
         runId = self.sheet.get_cell_data(rowId, 0)
         run = next((x for x in self.runData.runs if x.denoiserParams.id == runId), None)
         if run is None:
             return
-        
-        dp = run.denoiserParams
+        self.toggle_loading()
 
-        pairImage = dp.pairImage
-        imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
-        thresholdMethod = ThresholdFactory.create(dp.thresholding)
-        denoiserMethod = DenoiserFactory.create(dp.denoiser)
+        resImageProc = ResultImageProcessor(run)
+        (image, denImage, coeffImage) = resImageProc.get()
 
-        image = imageLoaderMethod(pairImage[1])
-        
         fig, ax = plt.subplots(2, 2)
         ax[0, 0].plot(run.denoiserResult.func_vals)
-        coeffImage = denoiserMethod.get_ceoff_image(image, run.denoiserResult.x)
-        if coeffImage is not None:
-            ax[0, 1].imshow(coeffImage)
-        ax[1, 0].imshow(imageLoaderMethod(pairImage[0]))
-        ax[1, 1].imshow(denoiserMethod.get_image(image, run.denoiserResult.x, thresholdMethod))
-        def test(event):
+        ax[1, 0].imshow(image)
+        if coeffImage is not None: ax[0, 1].imshow(coeffImage)
+        ax[1, 1].imshow(denImage)
+
+        def show_coeff(event):
             if event.inaxes == ax[0, 0]:
-                x = math.floor(event.xdata)
-                if x < 0 or x >= len(run.denoiserResult.x_iters):
+                if (self.loading):
+                    return
+                
+                coeffId = math.floor(event.xdata)
+                if coeffId < 0 or coeffId >= len(run.denoiserResult.x_iters):
                     print('Out of range')
                     return
-                coeffImage = denoiserMethod.get_ceoff_image(image, run.denoiserResult.x_iters[x])
-                denoisedImage = denoiserMethod.get_image(image, run.denoiserResult.x_iters[x], thresholdMethod)
-                if coeffImage is not None:
-                    ax[0, 1].imshow(coeffImage)
+                
+                self.toggle_loading()
+                fig.canvas.manager.set_window_title('Loading')
+                fig.canvas.flush_events()
+
+                (image, denoisedImage, coeffImage) = resImageProc.get(coeffId)
+                if coeffImage is not None: ax[0, 1].imshow(coeffImage)
                 ax[1, 1].imshow(denoisedImage)
                 plt.draw()
-                print(x)
-        fig.canvas.mpl_connect('button_press_event', test)
+
+                fig.canvas.manager.set_window_title('Ok')
+                self.toggle_loading()
+                
+        fig.canvas.mpl_connect('button_press_event', show_coeff)
         plt.tight_layout()
+        self.toggle_loading()
         plt.show()
 
 def main():
@@ -112,7 +143,7 @@ def main():
     args = parser.parse_args()
     resultPath = args.result
     runData = load(resultPath)
-    app = demo(runData)
+    app = ResultViewer(runData)
     app.mainloop()
     
 # The following code block will only execute if this script is run directly,
