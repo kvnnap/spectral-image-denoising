@@ -19,14 +19,8 @@ from curvelops.plot import (
 
 from utils.image import *
 
-def load_image(path):
-    image = load_image_raw_file(path)
-    image = convert_to_grayscale(image)
-    image = alpha_correction_chain(tone_map(image))
-    return image
-
-ref_image = load_image('images/dice_caustics/output_0.raw')
-image = load_image('images/dice_caustics/output_1.raw')
+ref_image = load_image('images/dice_caustics/output_0.raw', True)[:, :, 0]
+image = load_image('images/dice_caustics/output_1.raw', True)[:, :, 0]
 image = ref_image
 image = image.T
 FDCT = cl.FDCT2D(dims=image.shape, nbscales=4, allcurvelets=False)

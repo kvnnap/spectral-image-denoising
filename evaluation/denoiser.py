@@ -13,6 +13,6 @@ class Denoiser:
         return
     def get_image(self, image, coeff, thresholding):
         return
-    def get_ceoff_image(self, image, coeff):
+    def get_ceoff_image(self, image, coeff, thresholding):
         return
 

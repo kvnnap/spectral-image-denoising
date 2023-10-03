@@ -57,6 +57,6 @@ class WaveletDenoiser(Denoiser):
         coeffs = self.decompose(image)
         WaveletDenoiser.filter_coeffs(coeffs, coeff, thresholding)
         return self.recompose(coeffs)
-    def get_ceoff_image(self, image, coeff):
+    def get_ceoff_image(self, image, coeff, thresholding):
         return None
 

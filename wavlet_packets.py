@@ -9,7 +9,7 @@ from utils.image import *
 #image = plt.imread("images/dice_2.png")
 # Load image
 img = load_image_raw_file('images/dice_2.raw')
-img_gray = convert_to_grayscale(img)
+img_gray = convert_to_grayscale(img)[:, :, 0]
 
 # Define the wavelet packet decomposition parameters
 level = 5  # The level of decomposition

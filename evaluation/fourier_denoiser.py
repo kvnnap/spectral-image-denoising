@@ -72,5 +72,5 @@ class FourierDenoiser(Denoiser):
     def get_image(self, image, coeff, thresholding):
         (magnitude_spectrum, phase_spectrum) = FourierDenoiser.get_mag_phase(image)
         return FourierDenoiser.get_image_ifft(image.shape, magnitude_spectrum, phase_spectrum, thresholding, coeff)
-    def get_ceoff_image(self, image, coeff):
+    def get_ceoff_image(self, image, coeff, thresholding):
         return FourierDenoiser.create_multimask(image.shape, coeff) * 255

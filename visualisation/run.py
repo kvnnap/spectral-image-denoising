@@ -27,10 +27,12 @@ class ResultImageProcessor():
         self.denoiserMethod = DenoiserFactory.create(dp.denoiser)
         self.image = self.imageLoaderMethod(dp.pairImage[1])
     
-    def get(self, coeffId = None):
+    def get(self, renderCoeffImage = True, coeffId = None):
         coeffs = self.run.denoiserResult.x if coeffId is None else self.run.denoiserResult.x_iters[coeffId]
         den = self.denoiserMethod.get_image(self.image, coeffs, self.thresholdMethod)
-        den_coeff = self.denoiserMethod.get_ceoff_image(self.image, coeffs)
+        den_coeff = None
+        if (renderCoeffImage):
+            den_coeff = self.denoiserMethod.get_ceoff_image(self.image, coeffs, self.thresholdMethod)
         return (self.image, den, den_coeff)
 
 class ResultViewer(tk.Tk):
@@ -38,7 +40,7 @@ class ResultViewer(tk.Tk):
         tk.Tk.__init__(self)
 
         # process data to rows/cols
-        header = ['id', 'name', 'imageLoader', 'metric', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff']
+        header = ['id', 'name', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff']
         row = []
         for run in runData.runs:
             dp = run.denoiserParams
@@ -47,6 +49,7 @@ class ResultViewer(tk.Tk):
                 dp.name,
                 dp.imageLoader,
                 dp.metric,
+                run.denoiserResult.fun,
                 dp.thresholding,
                 dp.search,
                 dp.iterations,
@@ -59,6 +62,7 @@ class ResultViewer(tk.Tk):
         self.loading = False
         self.runData = runData
         self.rowData = row
+        self.renderCoeff = False
         self.grid_columnconfigure(0, weight = 1)
         self.grid_rowconfigure(0, weight = 1)
         self.frame = tk.Frame(self)
@@ -101,7 +105,7 @@ class ResultViewer(tk.Tk):
         self.toggle_loading()
 
         resImageProc = ResultImageProcessor(run)
-        (image, denImage, coeffImage) = resImageProc.get()
+        (image, denImage, coeffImage) = resImageProc.get(self.renderCoeff)
 
         fig, ax = plt.subplots(2, 2)
         ax[0, 0].plot(run.denoiserResult.func_vals)
@@ -110,6 +114,9 @@ class ResultViewer(tk.Tk):
         ax[1, 1].imshow(denImage)
 
         def show_coeff(event):
+            if event.inaxes == ax[0, 1]:
+                self.renderCoeff = not self.renderCoeff
+
             if event.inaxes == ax[0, 0]:
                 if (self.loading):
                     return
@@ -123,7 +130,7 @@ class ResultViewer(tk.Tk):
                 fig.canvas.manager.set_window_title('Loading')
                 fig.canvas.flush_events()
 
-                (image, denoisedImage, coeffImage) = resImageProc.get(coeffId)
+                (image, denoisedImage, coeffImage) = resImageProc.get(self.renderCoeff, coeffId)
                 if coeffImage is not None: ax[0, 1].imshow(coeffImage)
                 ax[1, 1].imshow(denoisedImage)
                 plt.draw()

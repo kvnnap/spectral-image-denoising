@@ -73,6 +73,6 @@ class WaveletSwtDenoiser(Denoiser):
         filtered_img = self.recompose(coeffs)
         filtered_img = crop_enlarge(filtered_img, image.shape)
         return filtered_img
-    def get_ceoff_image(self, image, coeff):
+    def get_ceoff_image(self, image, coeff, thresholding):
         return None
 
