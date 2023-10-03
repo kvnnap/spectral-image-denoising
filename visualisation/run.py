@@ -2,6 +2,7 @@ import sys
 import os
 import math
 import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 import tkinter as tk
 
@@ -107,7 +108,10 @@ class ResultViewer(tk.Tk):
         resImageProc = ResultImageProcessor(run)
         (image, denImage, coeffImage) = resImageProc.get(self.renderCoeff)
 
-        fig, ax = plt.subplots(2, 2)
+        fig = plt.figure()
+        ax = np.array([[fig.add_subplot(2, 2, 1), fig.add_subplot(2, 2, 2)], [fig.add_subplot(2, 2, 3), None]])
+        ax[1, 1] = fig.add_subplot(2, 2, 4, sharex=ax[1, 0], sharey=ax[1, 0])
+
         ax[0, 0].plot(run.denoiserResult.func_vals)
         ax[1, 0].imshow(image)
         if coeffImage is not None: ax[0, 1].imshow(coeffImage)
