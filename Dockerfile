@@ -1,4 +1,4 @@
-FROM python as builder
+FROM python:3.11 as builder
 
 ARG USER=kevin
 ARG HOME=/home/$USER
@@ -34,7 +34,7 @@ COPY --chown=$USER:$USER requirements.txt .
 ENV FFTW=$HOME/opt/fftw-2.1.5 FDCT=$HOME/opt/CurveLab-2.1.3
 RUN pip3 install --no-compile -r requirements.txt
 
-FROM python:slim
+FROM python:3.11-slim
 ARG USER=kevin
 ARG HOME=/home/$USER
 RUN useradd -ms /bin/bash $USER \
