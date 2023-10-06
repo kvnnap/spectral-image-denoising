@@ -1,5 +1,6 @@
 /.devcontainer/CurveLab-2.1.3.tar.gz
 /images/
+/results/
 __pycache__/
 
 CurveLab-2.1.3.tar.gz
