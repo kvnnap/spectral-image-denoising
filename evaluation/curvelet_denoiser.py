@@ -64,7 +64,8 @@ class CurveletDenoiser(Denoiser):
     
     def get_ceoff_image(self, image, coeff, thresholding):
         if (get_channel_count(image) > 1):
-            image = convert_to_grayscale(image)[:,:,0]
+            image = convert_to_grayscale(image)
+        image = image[:, :, 0]
         #image = image.T
         FDCT, c_struct = self.decompose(image)
         c_struct = CurveletDenoiser.get_fdct_struct(c_struct, coeff, thresholding)
