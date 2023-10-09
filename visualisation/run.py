@@ -5,9 +5,11 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import tkinter as tk
+from tkinter import filedialog
 
 from tksheet import Sheet
 from functools import partial
+#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -35,6 +37,9 @@ class ResultImageProcessor():
         if (renderCoeffImage):
             den_coeff = self.denoiserMethod.get_ceoff_image(self.image, coeffs, self.thresholdMethod)
         return (self.image, den, den_coeff)
+    
+    def update_image_path(self, path):
+        self.image = self.imageLoaderMethod(path)
 
 class ResultViewer(tk.Tk):
     def __init__(self, runData):
@@ -98,6 +103,12 @@ class ResultViewer(tk.Tk):
     def show_run(self, rowId):
         if (self.loading):
             return
+        
+        # subWindow = tk.Toplevel(self)
+        # subWindow.title('Test')
+        # subWindow.protocol("WM_DELETE_WINDOW", subWindow.destroy)
+        # subWindow.destroy()
+
         # get run_Id from row_id
         runId = self.sheet.get_cell_data(rowId, 0)
         run = next((x for x in self.runData.runs if x.denoiserParams.id == runId), None)
@@ -109,6 +120,9 @@ class ResultViewer(tk.Tk):
         (image, denImage, coeffImage) = resImageProc.get(self.renderCoeff)
 
         fig = plt.figure()
+        # canvas = FigureCanvasTkAgg(fig, master=subWindow)
+        # canvas.get_tk_widget().pack()
+
         ax = np.array([[fig.add_subplot(2, 2, 1), fig.add_subplot(2, 2, 2)], [fig.add_subplot(2, 2, 3), None]])
         ax[1, 1] = fig.add_subplot(2, 2, 4, sharex=ax[1, 0], sharey=ax[1, 0])
 
@@ -120,6 +134,10 @@ class ResultViewer(tk.Tk):
         def show_coeff(event):
             if event.inaxes == ax[0, 1]:
                 self.renderCoeff = not self.renderCoeff
+            
+            if event.inaxes == ax[1, 1]:
+                fileName = filedialog.askopenfilename(parent=self, title='Select RAW file')
+                resImageProc.update_image_path(fileName)
 
             if event.inaxes == ax[0, 0]:
                 if (self.loading):
@@ -135,6 +153,7 @@ class ResultViewer(tk.Tk):
                 fig.canvas.flush_events()
 
                 (image, denoisedImage, coeffImage) = resImageProc.get(self.renderCoeff, coeffId)
+                ax[1, 0].imshow(image)
                 if coeffImage is not None: ax[0, 1].imshow(coeffImage)
                 ax[1, 1].imshow(denoisedImage)
                 plt.draw()
