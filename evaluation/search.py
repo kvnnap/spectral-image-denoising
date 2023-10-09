@@ -1,4 +1,4 @@
-#from functools import partial
+from functools import partial
 import numpy as np
 import math
 from skopt import gp_minimize
@@ -9,10 +9,10 @@ from core.search import Result
 # Since n_calls determines the number of times we call fn,
 # determine the subdivisions using n_calls for the time being
 # Otherwise, we need to attach context to the denoiser
-def naive(fn, space, n_calls):
+def naive(descending, fn, space, n_calls):
     subdiv = max(math.ceil((n_calls - 1) / len(space)) + 1, 2)
-    x = [s.low for s in space]
-    x_subdiv = list(map(lambda x: np.linspace(x.low, x.high, subdiv).tolist(), space))
+    x = [s.high if descending else s.low for s in space]
+    x_subdiv = list(map(lambda x: np.linspace(x.high, x.low, subdiv).tolist() if descending else np.linspace(x.low, x.high, subdiv).tolist(), space))
     #scores = [[] for _ in range(len(x_subdiv))]
     scores_global = []
     min_score = (float('inf'), [])
@@ -46,7 +46,9 @@ class SearchFactory:
     def create(search_name):
         name = search_name.strip().lower()
         if (name == "naive"):
-            return naive
+            return partial(naive, False)
+        elif (name == "naive_descending"):
+            return partial(naive, True)
         elif (name == "gp_minimize"):
             return gp_minimize_wrapper
         else:

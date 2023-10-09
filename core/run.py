@@ -5,7 +5,7 @@ class ParameterSpace:
         self.imageLoaders = [] # gray, gray_tm, rgb, rgb_tm
         self.metrics = [] # MSE, SSIM
         self.thresholds = [] # mult, soft, hard, garrote
-        self.searchMethods = [] # naive, gp_minimize
+        self.searchMethods = [] # naive, naive_descending, gp_minimize
         self.iterations = [] # applies to ALL
         self.denoisers = [] # fourier, wavelet, wavelet_swt, curvelet etc
 

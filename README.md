@@ -1,5 +1,98 @@
 # python-image-processing
 
+## Arguments
+
+```bash
+usage: run.py [-h] [--config CONFIG] [--result RESULT] [--temp TEMP] [--cores CORES]
+
+Evaluates denoising using the parameter space provided in the input json file.
+
+options:
+  -h, --help       show this help message and exit
+  --config CONFIG  File path to the JSON ParameterSpace list (default=config.json)
+  --result RESULT  Where to save the JSON Run object (default=result.json)
+  --temp TEMP      Where to save intermediate JSON Run objects (default=temp.json)
+  --cores CORES    Number of cores to use. 0 uses maximum (default=0)
+```
+## Configuration
+
+The below JSON configuration outlines all possible values for a group of runs.
+
+For wavelet families and possible variations see https://pywavelets.readthedocs.io/en/latest/regression/wavelet.html
+
+```json
+[
+    {
+        "py/object": "core.run.ParameterSpace",
+        "name": "group_run_name",
+        "images": [
+            {
+                "py/tuple": [
+                    "ground_truth.raw",
+                    [
+                        "noisy.raw"
+                    ]
+                ]
+            }
+        ],
+        "imageLoaders":[
+            "gray",
+            "gray_tm",
+            "rgb",
+            "rgb_tm"
+        ],
+        "metrics": [
+            "mse",
+            "ssim"
+        ],
+        "thresholds": [
+            "mult",
+            "hard",
+            "soft",
+            "garrote"
+        ],
+        "searchMethods": [
+            "naive",
+            "naive_descending",
+            "gp_minimize"
+        ],
+        "iterations": [
+            100
+        ],
+        "denoisers": [
+            {
+                "name": "fourier",
+                "coefficientLength": [ // 16 is default
+                    16
+                ]
+            },
+            {
+                "name": "wavelet",
+                "level": [  // 0 is default
+                    0
+                ],
+                "waveletName": [ // Name + number. sym2 is default.
+                    "haar", "db", "sym", "coif", "bior", "rbio", "dmey", "gaus", "mexh", "morl", "cgau", "shan", "fbsp", "cmor"
+                ]
+            },
+            {
+                "name": "wavelet_swt",
+                "level": [ // 0 is default
+                    6
+                ],
+                "waveletName": [ // Name + number. sym2 is default.
+                    "haar", "db", "sym", "coif", "bior", "rbio", "dmey", "gaus", "mexh", "morl", "cgau", "shan", "fbsp", "cmor"
+                ]
+            },
+            {
+                "name": "curvelet" // curvelet has no additional config yet
+            }
+        ]
+    },
+    // Other possible groups here
+]
+```
+
 ## Important
 
 Copy your licenced copy of *CurveLab-2.1.3.tar.gz* inside the *.devcontainer* folder before building!

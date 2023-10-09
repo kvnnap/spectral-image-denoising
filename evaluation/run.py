@@ -97,7 +97,7 @@ class Run:
 def main():
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
-    parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace object')
+    parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace list')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
     parser.add_argument('--temp', default='temp.json', help='Where to save intermediate JSON Run objects')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
