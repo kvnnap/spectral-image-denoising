@@ -35,13 +35,13 @@ class ResultPlot:
             ax[0, 0].plot(vals)
         if coeffImage is not None:
             ax[0, 1].cla()
-            ax[0, 1].imshow(coeffImage)
+            ax[0, 1].imshow(coeffImage, cmap='gray')
         if image is not None:
             ax[1, 0].cla()
-            ax[1, 0].imshow(image)
+            ax[1, 0].imshow(image, cmap='gray')
         if denImage is not None:
             ax[1, 1].cla()
-            ax[1, 1].imshow(denImage)
+            ax[1, 1].imshow(denImage, cmap='gray')
         self.figure.canvas.draw()
         #plt.draw()
 
