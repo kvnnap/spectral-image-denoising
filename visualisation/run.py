@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.versioning import get_version
 from utils.serialisation import to_string_obj, load
 from utils.string import extract_file_name
+from utils.math import euclidean_distance
 
 from visualisation.run_viewer import RunViewer
 
@@ -50,12 +51,18 @@ class ResultViewer(tk.Tk):
         self.frame.grid_rowconfigure(0, weight = 1)
         self.sheet = Sheet(self.frame,
                            data = row, header=header)
-        self.sheet.enable_bindings('toggle_select', 'single_select', 'row_select', 'column_select', 'right_click_popup_menu', 'column_width_resize')
+        self.sheet.enable_bindings('toggle_select', 'single_select', 'ctrl_select', 'row_select', 'column_select', 'right_click_popup_menu', 'column_width_resize')
         self.sheet.popup_menu_add_command("sort asc", partial(self.sort, False))
         self.sheet.popup_menu_add_command("sort desc", partial(self.sort, True))
         self.sheet.extra_bindings([('all_select_events', self.row_select)])
         self.frame.grid(row = 0, column = 0, sticky = "nswe")
         self.sheet.grid(row = 0, column = 0, sticky = "nswe")
+
+        self.cmpButton = tk.Button(self.frame, text='Compare', command=self.compare_coeff)
+        self.cmpButton.grid(row = 1, column = 0, sticky='w')
+
+        self.label = tk.Label(self.frame, text='0')
+        self.label.grid(row = 1, column = 0, sticky='e')
 
     def sort(self, reverse=False, event = None):
         columnId = self.sheet.get_selected_columns().pop()
@@ -74,17 +81,28 @@ class ResultViewer(tk.Tk):
             self.title('Result Explorer')
         self.update()
 
+    def get_run_from__row_id(self, rowId):
+        return next((x for x in self.runData.runs if x.denoiserParams.id == rowId), None)
+        
     def show_run(self, rowId):
         if (self.isLoading):
             return
 
         # get run_Id from row_id
         runId = self.sheet.get_cell_data(rowId, 0)
-        run = next((x for x in self.runData.runs if x.denoiserParams.id == runId), None)
+        run = self.get_run_from__row_id(runId)
         if run is None:
             return
         
         rv = RunViewer(self, run)
+
+    def compare_coeff(self):
+        cells = self.sheet.get_selected_cells()
+        if len(cells) != 2:
+            return
+        rows = list(map(lambda cell: self.get_run_from__row_id(cell[0]).denoiserResult.x, cells))
+        result = euclidean_distance(rows[0], rows[1])
+        self.label.config(text=f"{result}")
         
 def main():
     versionString = get_version().to_string()
