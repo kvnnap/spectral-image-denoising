@@ -82,15 +82,15 @@ class ResultViewer(tk.Tk):
         self.update()
 
     def get_run_from__row_id(self, rowId):
-        return next((x for x in self.runData.runs if x.denoiserParams.id == rowId), None)
+        runId = self.sheet.get_cell_data(rowId, 0)
+        return next((x for x in self.runData.runs if x.denoiserParams.id == runId), None)
         
     def show_run(self, rowId):
         if (self.isLoading):
             return
 
         # get run_Id from row_id
-        runId = self.sheet.get_cell_data(rowId, 0)
-        run = self.get_run_from__row_id(runId)
+        run = self.get_run_from__row_id(rowId)
         if run is None:
             return
         
