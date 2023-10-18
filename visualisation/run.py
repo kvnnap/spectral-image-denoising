@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
 from utils.serialisation import to_string_obj, load
+from utils.string import extract_file_name
 
 from visualisation.run_viewer import RunViewer
 
@@ -18,13 +19,14 @@ class ResultViewer(tk.Tk):
         tk.Tk.__init__(self)
 
         # process data to rows/cols
-        header = ['id', 'name', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff']
+        header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff']
         row = []
         for run in runData.runs:
             dp = run.denoiserParams
             row.append([
                 dp.id,
                 dp.name,
+                f"{extract_file_name(dp.pairImage[0])}-{extract_file_name(dp.pairImage[1])}",
                 dp.imageLoader,
                 dp.metric,
                 run.denoiserResult.fun,

@@ -5,7 +5,22 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": [],
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Evaluation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluation/run.py",
+            "args": ["--result", "result.json", "--cores", "1"],
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Visualisation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/visualisation/run.py",
+            "args": ["--result", "results/result.relative.json"],
             "justMyCode": true
         }
     ]

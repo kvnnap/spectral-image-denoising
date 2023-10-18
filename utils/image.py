@@ -123,3 +123,19 @@ def crop_enlarge(img, shape):
         img = img[:, :shape[1], :]
     # Enlargement
     return np.pad(img, ((0, shape[0] - img.shape[0]), (0, shape[1] - img.shape[1]), (0, 0)), mode='constant')
+
+def list_to_square_image(arr):
+    # Determine the size of the square image
+    N = len(arr)
+    side_length = round(N**0.5)  # Take the square root and round to the nearest integer
+
+    # Create a square array filled with zeros
+    square_image = np.zeros((side_length, side_length))
+
+    # Fill the array with coeff values
+    for i, value in enumerate(arr):
+        row = i // side_length
+        col = i % side_length
+        square_image[row, col] = value
+        
+    return square_image

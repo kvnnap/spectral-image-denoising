@@ -10,9 +10,9 @@ class DenoiserRunParams:
 
 class Denoiser:
     def run(self, denoiserParams):
-        return
+        return None
     def get_image(self, image, coeff, thresholding):
-        return
+        return None
     def get_ceoff_image(self, image, coeff, thresholding):
-        return
+        return None
 
