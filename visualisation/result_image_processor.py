@@ -11,6 +11,7 @@ class ResultImageProcessor():
         self.imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
         self.thresholdMethod = ThresholdFactory.create(dp.thresholding)
         self.denoiserMethod = DenoiserFactory.create(dp.denoiser)
+        self.metricMethod = MetricFactory.create(dp.metric)
         self.image = self.imageLoaderMethod(dp.pairImage[1])
     
     @lru_cache
@@ -22,10 +23,13 @@ class ResultImageProcessor():
             den_coeff = self.denoiserMethod.get_ceoff_image(self.image, coeffs, self.thresholdMethod)
         return (self.image, den, den_coeff)
     
+    def compute_score(self, coeffId = None):
+        (image, reconstructedImage, _) = self.get(False, coeffId)
+        return self.metricMethod(image, reconstructedImage)
+    
     def update_image_path(self, path):
         self.image = self.imageLoaderMethod(path)
         self.get.cache_clear()
 
     def get_image(self, path):
         return self.imageLoaderMethod(path)
-

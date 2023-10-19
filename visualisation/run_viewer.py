@@ -38,6 +38,9 @@ class RunViewer():
         self.applyBgButton = tk.Button(self.subWindow, text='Apply Background Image', command=self.apply_background_image)
         self.applyBgButton.pack()
 
+        self.scoreLabel = tk.Label(self.subWindow, text='0')
+        self.scoreLabel.pack()
+
         self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton]
 
         self.plot()
@@ -52,6 +55,7 @@ class RunViewer():
             image = self.backImage + image
             denImage = self.backImage + denImage
         self.plot_raw(coeffImage, image, denImage)
+        self.scoreLabel.config(text=f"{self.resImageProc.compute_score(self.currentCoeffId)}")
         self.toggle_loading()
     
     def plot_raw(self, coeffImage, image, denImage):
