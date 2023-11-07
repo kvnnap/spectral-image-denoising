@@ -38,6 +38,9 @@ class RunViewer():
         self.applyBgButton = tk.Button(self.subWindow, text='Apply Background Image', command=self.apply_background_image)
         self.applyBgButton.pack()
 
+        self.changeRefImageButton = tk.Button(self.subWindow, text='Change Reference Image', command=self.change_reference_image)
+        self.changeRefImageButton.pack()
+        
         self.scoreLabel = tk.Label(self.subWindow, text='0')
         self.scoreLabel.pack()
 
@@ -93,6 +96,11 @@ class RunViewer():
     def apply_background_image(self):
         fileName = filedialog.askopenfilename(parent=self.subWindow, title='Select RAW file')
         self.backImage = self.resImageProc.get_image(fileName)
+        self.plot()
+
+    def change_reference_image(self):
+        fileName = filedialog.askopenfilename(parent=self.subWindow, title='Select RAW file')
+        self.resImageProc.update_ref_image_path(fileName)
         self.plot()
 
     def closing_window(self, event = None):

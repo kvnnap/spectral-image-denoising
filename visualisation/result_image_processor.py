@@ -26,11 +26,14 @@ class ResultImageProcessor():
     
     def compute_score(self, coeffId = None):
         (_, reconstructedImage, _) = self.get(False, coeffId)
-        return self.metricMethod(self.refImage, reconstructedImage)
+        return (self.metricMethod(self.refImage, self.image), self.metricMethod(self.refImage, reconstructedImage))
     
     def update_image_path(self, path):
         self.image = self.imageLoaderMethod(path)
         self.get.cache_clear()
+
+    def update_ref_image_path(self, path):
+        self.refImage = self.imageLoaderMethod(path)
 
     def get_image(self, path):
         return self.imageLoaderMethod(path)
