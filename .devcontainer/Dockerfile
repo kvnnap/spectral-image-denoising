@@ -3,6 +3,12 @@ FROM mcr.microsoft.com/devcontainers/python:0-3.11
 ARG USER=vscode
 ARG HOME=/home/$USER
 
+# Install OpenEXR deps
+RUN apt-get update \
+ && apt-get -y install libopenexr-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 USER $USER
 WORKDIR $HOME
 

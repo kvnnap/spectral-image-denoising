@@ -1,4 +1,8 @@
 import numpy as np
+import OpenEXR
+import Imath
+
+from utils.string import extract_file_extension
 
 def load_image_raw_file(file_path):
     with open(file_path, 'rb') as f:
@@ -12,6 +16,28 @@ def load_image_raw_file(file_path):
         pixel_data = pixel_data.reshape((height, width, 3))
 
     return pixel_data
+
+def load_exr_image(file_path):
+    exr_file = OpenEXR.InputFile(file_path)
+    header = exr_file.header()
+
+    # Get image attributes
+    width = int(header['dataWindow'].max.x - header['dataWindow'].min.x + 1)
+    height = int(header['dataWindow'].max.y - header['dataWindow'].min.y + 1)
+
+    # Read RGB channels with full floating-point precision
+    channels = ['R', 'G', 'B']
+    pixel_type = Imath.PixelType(Imath.PixelType.FLOAT)
+    
+    # Read channels and convert to numpy arrays
+    channel_data = {channel: exr_file.channel(channel, pixel_type) for channel in channels}
+
+    # Combine channels into an image array
+    image_array = np.zeros((height, width, len(channels)), dtype=np.float32)
+    for i, channel in enumerate(channels):
+        image_array[:, :, i] = np.frombuffer(channel_data[channel], dtype=np.float32).reshape((height, width))
+
+    return image_array
 
 def convert_to_grayscale(image_data):
     # Convert RGB pixel data to grayscale using the formula:
@@ -30,7 +56,9 @@ def tone_map(image_data):
     return tone_mapped_data
 
 def load_image(path, gray = True, tm = True):
-    image = load_image_raw_file(path)
+    # Select image format
+    file_extension = extract_file_extension(path).lower()
+    image = load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
     if (gray):
         image = convert_to_grayscale(image)
     if (tm):

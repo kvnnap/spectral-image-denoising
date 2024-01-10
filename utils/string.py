@@ -1,6 +1,7 @@
-import os
+from pathlib import Path
 
-def extract_file_name(input_string):
-    base_filename = os.path.basename(input_string)  # Get the base filename
-    filename_without_extension, _ = os.path.splitext(base_filename)  # Remove the file extension
-    return filename_without_extension
+def extract_file_extension(file_path):
+    return Path(file_path).suffix
+
+def extract_file_name(file_path):
+    return Path(file_path).stem

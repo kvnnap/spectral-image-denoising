@@ -3,6 +3,12 @@ FROM python:3.11 as builder
 ARG USER=kevin
 ARG HOME=/home/$USER
 
+# Install OpenEXR deps
+RUN apt-get update \
+ && apt-get -y install libopenexr-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN useradd -ms /bin/bash $USER
 USER $USER
 WORKDIR $HOME
