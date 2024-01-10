@@ -5,7 +5,7 @@ ARG HOME=/home/$USER
 
 # Install OpenEXR deps
 RUN apt-get update \
- && apt-get -y install libopenexr-dev \
+ && apt-get -y --no-install-recommends install libopenexr-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -46,6 +46,11 @@ ARG HOME=/home/$USER
 RUN useradd -ms /bin/bash $USER \
     && mkdir -p /app/data \
     && chown -R $USER:$USER /app
+# Install OpenEXR deps
+RUN apt-get update \
+ && apt-get -y install libopenexr-3-1-30 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 USER $USER
 WORKDIR /app/data
 COPY --chown=$USER:$USER --from=builder $HOME/opt $HOME/opt
