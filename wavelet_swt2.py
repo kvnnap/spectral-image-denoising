@@ -8,7 +8,7 @@ from utils.image import *
 x = load_image('images/dice_caustics/output_1.raw')
 orig_shape = x.shape
 #x = resize_to_nearest_power_of_2_square(x)
-x = crop_enlarge(x, (1024, 1024))
+x = crop_enlarge(x, (1024, 1024))[:, :, 0]
 
 wavelet_name = 'sym2'
 level = pywt.swt_max_level(max(x.shape))
@@ -44,7 +44,7 @@ for c in coeffs:
     # plt.title('D'), plt.xticks([]), plt.yticks([])
     # plt.show()
 
-res = pywt.iswt2(coeffs, wavelet_name)
+res = pywt.iswt2(coeffs, wavelet_name)[:, :, np.newaxis]
 res = crop_enlarge(res, orig_shape)
 plt.imshow(res, cmap='gray')
 plt.show()

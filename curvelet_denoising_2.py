@@ -10,7 +10,7 @@ fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
 
 x = load_image_raw_file('images/dice_2.raw')
 #x = load_image_raw_file('images/ashtray_2.raw')
-x = convert_to_grayscale(x)
+x = convert_to_grayscale(x)[:, :, 0]
 #x = alpha_correction_chain(tone_map(x))
 
 FDCT = cl.FDCT2D(dims=x.shape)

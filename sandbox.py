@@ -6,8 +6,8 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error
 from utils.image import *
 
-ref_image = load_image('images/dice_caustics/output_0.raw')
-image = load_image('images/dice_caustics/output_1.raw')
+ref_image = load_image('images/dice_caustics/output_0.raw')[:, :, 0]
+image = load_image('images/dice_caustics/output_1.raw')[:, :, 0]
 
 # img = img_as_float(data.camera())
 # rows, cols = img.shape

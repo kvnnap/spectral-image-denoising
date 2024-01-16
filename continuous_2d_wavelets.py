@@ -12,7 +12,7 @@ def pad(A, shape):
 
 img = load_image_raw_file('images/dice_2.raw')
 img = convert_to_grayscale(img)
-img = alpha_correction_chain(tone_map(img))
+img = alpha_correction_chain(tone_map(img))[:, :, 0]
 min_dim = min(img.shape)
 max_dim = max(img.shape)
 img = pad(img, (max_dim,max_dim))

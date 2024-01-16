@@ -16,8 +16,8 @@ def load_image(path):
     image = alpha_correction_chain(tone_map(image))
     return image
 
-ref_image = load_image('images/dice_caustics/output_0.raw')
-image = load_image('images/dice_caustics/output_1.raw')
+ref_image = load_image('images/dice_caustics/output_0.raw')[:, :, 0]
+image = load_image('images/dice_caustics/output_1.raw')[:, :, 0]
 
 FDCT = cl.FDCT2D(dims=image.shape, nbscales=3)
 c_other = FDCT @ image

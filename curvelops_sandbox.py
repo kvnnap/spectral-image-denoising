@@ -22,7 +22,7 @@ from utils.image import *
 # n = 512
 # x = np.zeros((m, n))
 x = load_image_raw_file('images/dice_2.raw')
-x = convert_to_grayscale(x)
+x = convert_to_grayscale(x)[:, :, 0]
 m = x.shape[0]
 n = x.shape[1]
 DCT = FDCT2D(x.shape)
