@@ -45,13 +45,13 @@ class RunViewer():
         self.changeRefImageButton = tk.Button(self.subWindow, text='Change Reference Image', command=self.change_reference_image)
         self.changeRefImageButton.pack()
 
-        self.saveImages = tk.Button(self.subWindow, text='Save Images', command=self.save_images)
-        self.saveImages.pack()
+        self.saveImagesButton = tk.Button(self.subWindow, text='Save Images', command=self.save_images)
+        self.saveImagesButton.pack()
 
         self.scoreLabel = tk.Label(self.subWindow, text='0')
         self.scoreLabel.pack()
 
-        self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton]
+        self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
         self.plot()
 
@@ -111,6 +111,7 @@ class RunViewer():
         self.plot()
 
     def save_images(self):
+        self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
         # Apply tone mapping if needed
         if (self.toneMap.get()):
@@ -130,6 +131,7 @@ class RunViewer():
             save_image_as_png(interpolate_image_to_range(coeffImage), f'{path}-coefficients.png')
         plotImage = self.resultPlot.plot_to_image(self.run.denoiserResult.func_vals)
         save_image_as_png(plotImage, f'{path}-plot.png')
+        self.toggle_loading()
 
     def closing_window(self, event = None):
         if self.isClosing:
