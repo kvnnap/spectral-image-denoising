@@ -3,6 +3,10 @@ from tkinter import filedialog
 from visualisation.result_image_processor import ResultImageProcessor
 from visualisation.result_plot import ResultPlot
 from utils.image import tone_alpha_map
+from utils.image import save_image_as_png
+from utils.image import interpolate_image_to_range
+
+import numpy as np
 
 # parent is the tk sheet
 class RunViewer():
@@ -40,7 +44,10 @@ class RunViewer():
 
         self.changeRefImageButton = tk.Button(self.subWindow, text='Change Reference Image', command=self.change_reference_image)
         self.changeRefImageButton.pack()
-        
+
+        self.saveImages = tk.Button(self.subWindow, text='Save Images', command=self.save_images)
+        self.saveImages.pack()
+
         self.scoreLabel = tk.Label(self.subWindow, text='0')
         self.scoreLabel.pack()
 
@@ -102,6 +109,27 @@ class RunViewer():
         fileName = filedialog.askopenfilename(parent=self.subWindow, title='Select RAW file')
         self.resImageProc.update_ref_image_path(fileName)
         self.plot()
+
+    def save_images(self):
+        (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
+        # Apply tone mapping if needed
+        if (self.toneMap.get()):
+            image = tone_alpha_map(image)
+            denImage = tone_alpha_map(denImage)
+        image *= 255
+        denImage = np.clip(denImage, 0, 1) * 255
+        
+        dp = self.run.denoiserParams
+        #full_name = f'{dp.name}-{dp.id}-{dp.denoiser["name"]}_{dp.denoiser["coefficientLength"]}-{dp.search}-{dp.thresholding}-{dp.imageLoader}-{dp.metric}-{dp.iterations}'
+        name = f'{dp.name}-{dp.id}'
+        dir_name = 'screenshots'
+        path = f'{dir_name}/{name}'
+        save_image_as_png(image, f'{path}-noisy.png')
+        save_image_as_png(denImage, f'{path}-denoised.png')
+        if self.showCoeff.get():
+            save_image_as_png(interpolate_image_to_range(coeffImage), f'{path}-coefficients.png')
+        plotImage = self.resultPlot.plot_to_image(self.run.denoiserResult.func_vals)
+        save_image_as_png(plotImage, f'{path}-plot.png')
 
     def closing_window(self, event = None):
         if self.isClosing:

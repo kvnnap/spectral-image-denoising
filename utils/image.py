@@ -1,6 +1,7 @@
 import numpy as np
 import OpenEXR
 import Imath
+import matplotlib.pyplot as plt
 
 from utils.string import extract_file_extension
 
@@ -38,6 +39,17 @@ def load_exr_image(file_path):
         image_array[:, :, i] = np.frombuffer(channel_data[channel], dtype=np.float32).reshape((height, width))
 
     return image_array
+
+def save_image_as_png(image_array, file_path):
+    # Convert the image array to uint8 format
+    image_array = np.array(image_array, dtype=np.uint8)
+
+    # Reshape the image array if it has a singleton dimension
+    if image_array.shape[-1] == 1:
+        image_array = np.squeeze(image_array, axis=-1)
+
+    # Save
+    plt.imsave(file_path, image_array, cmap='gray')
 
 def convert_to_grayscale(image_data):
     # Convert RGB pixel data to grayscale using the formula:
@@ -152,18 +164,26 @@ def crop_enlarge(img, shape):
     # Enlargement
     return np.pad(img, ((0, shape[0] - img.shape[0]), (0, shape[1] - img.shape[1]), (0, 0)), mode='constant')
 
-def list_to_square_image(arr):
+def list_to_square_image(arr, pix_size=480):
     # Determine the size of the square image
     N = len(arr)
     side_length = round(N**0.5)  # Take the square root and round to the nearest integer
 
+    pix_size = (pix_size, pix_size) # Can do rects too if pix_size is not square
+
+    pix_size = tuple(np.maximum((side_length, side_length), pix_size))
+    ppv  = (pix_size[0] / side_length, pix_size[1] / side_length)
+
     # Create a square array filled with zeros
-    square_image = np.zeros((side_length, side_length))
+    square_image = np.zeros(pix_size)
 
     # Fill the array with coeff values
     for i, value in enumerate(arr):
         row = i // side_length
         col = i % side_length
-        square_image[row, col] = value
+        square_image[int(row * ppv[0]) : int((row + 1) * ppv[0]), int(col * ppv[1]) : int((col + 1) * ppv[1])] = value
         
     return square_image
+
+def interpolate_image_to_range(image, im_range=(0, 255)):
+    return np.interp(image, (image.min(), image.max()), im_range)

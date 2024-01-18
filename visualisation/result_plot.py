@@ -45,6 +45,31 @@ class ResultPlot:
         self.figure.canvas.draw()
         #plt.draw()
 
+    def plot_to_image(self, vals):
+        # Turn off interactive mode
+        plt.ioff()
+
+        # Create a new figure
+        dpi = 100
+        res = (1024, 768)
+        fig, ax = plt.subplots(figsize=(res[0]/dpi,res[1]/dpi), dpi=dpi)
+
+        # Plot the values on the new figure
+        ax.plot(vals)
+        # ax.set_title(title)
+        # ax.set_xlabel(xlabel)
+        # ax.set_ylabel(ylabel)
+        
+        fig.canvas.draw()
+        numpy_image = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        numpy_image = numpy_image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+        # Save the plot without displaying it
+        plt.close(fig)
+        plt.ion()
+
+        return numpy_image
+
     def fig_click(self, event):
         if event.inaxes == self.axis[0, 0]:
             coeffId = math.floor(event.xdata)
