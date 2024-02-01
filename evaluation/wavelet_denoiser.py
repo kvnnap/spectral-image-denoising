@@ -58,5 +58,16 @@ class WaveletDenoiser(Denoiser):
         WaveletDenoiser.filter_coeffs(coeffs, coeff, thresholding)
         return self.recompose(coeffs)
     def get_ceoff_image(self, image, coeff, thresholding):
-        return list_to_square_image(coeff)
+        coeffs = self.decompose(image)[0] # red but ok
+        arr, slices = pywt.coeffs_to_array(coeffs)
+        # coeffShape = (slices[-1]['dd'][0].stop, slices[-1]['dd'][1].stop)
+        # arr = np.full(coeffShape, 1.0, dtype=coeffs[0].dtype)
+        arr[True] = 0.0 # Turn white
+        c = 0
+        for i in range(1, len(coeffs)):
+            arr[slices[i]['da']] = coeff[c + 0]
+            arr[slices[i]['ad']] = coeff[c + 1]
+            arr[slices[i]['dd']] = coeff[c + 2]
+            c += 3
+        return arr
 

@@ -96,6 +96,38 @@ class CurveletDenoiser(Denoiser):
         plt.ion()
         return image_data
 
+    def get_curve_ceoff_whole_image(self, image, coeff, thresholding):
+        FDCT = cl.FDCT2D(dims=image.shape[:2], nbscales=None)
+
+        # Optimisation to avoid decomposing the image again, we only need a look-alike structure
+        c_struct = [[np.zeros(s) for s in shape] for shape in FDCT.shapes]
+
+        for scale_index, scale in enumerate(c_struct):
+            for wedge_index in range(len(scale)):
+                # c_struct[scale_index][wedge_index] = np.full_like(c_struct[scale_index][wedge_index], count)
+                c_struct[scale_index][wedge_index] = np.full((1, 1), complex(coeff[scale_index]))
+                #c_struct[scale_index][wedge_index] = count
+
+        plt.ioff()
+
+        rows, cols = 1, 1
+        fig, axes = create_axes_grid(
+            rows,
+            cols,
+            kwargs_subplots=dict(projection="polar"),
+            kwargs_figure=dict(figsize=(4, 4)),
+        )
+        overlay_disks(c_struct, axes, annotate=False, cmap='gray')
+
+        fig.canvas.draw()
+        image_data = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+        image_data = image_data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+        plt.close(fig)
+        
+        plt.ion()
+        return image_data
+
     def get_ceoff_image(self, image, coeff, thresholding):
-        #return self.get_curve_ceoff_image(image, coeff, thresholding)
-        return list_to_square_image(coeff)
+        return self.get_curve_ceoff_whole_image(image, coeff, thresholding)
+        #return list_to_square_image(coeff)
