@@ -2,27 +2,39 @@ import numpy as np
 import copy
 from evaluation.denoiser import Denoiser
 from utils.image import seperate_channels, merge_channels
+from utils.math import get_threshold_max
 
 class FourierDenoiser(Denoiser):
     def __init__(self, config):
         super().__init__()
         self.coefficientLength = config['coefficientLength'] if 'coefficientLength' in config else 16
 
-    # Function to create elliptical masks for multiple frequencies
     @staticmethod
-    def create_multimask(image_shape, attenuations):
+    def get_multimask_ranges(image_shape, attenuations_size):
         rows, cols, *_ = image_shape
         center_row, center_col = rows // 2, cols // 2
 
         y, x = np.ogrid[:rows, :cols]
         z = np.sqrt((x - center_col) ** 2 + ((y - center_row) * (cols / rows)) ** 2)
 
+        # step_size = center_col / attenuations_size
+        step_size = z.max() / attenuations_size
+        ranges_list = []
+        for i in range(attenuations_size):
+            if i == attenuations_size - 1:
+                rng = step_size * i <= z
+            else:
+                rng = (step_size * i <= z) & (z < step_size * (i + 1))
+            ranges_list.append(rng)
+        return ranges_list
+
+    # Function to create elliptical masks for multiple frequencies
+    @staticmethod
+    def create_multimask(image_shape, attenuations):
+        ranges_list = FourierDenoiser.get_multimask_ranges(image_shape, len(attenuations))
         mask = np.ones(image_shape, dtype=np.float32)
-        # step_size = center_col / len(attenuations)
-        step_size = z.max() / len(attenuations)
-        for i, att in enumerate(attenuations):
-            rng = (step_size * i <= z) & (z < step_size * (i + 1))
-            mask[rng] = att
+        for i, rng in enumerate(ranges_list):
+            mask[rng] = attenuations[i]
         return mask
 
     # Fourier methods
@@ -65,7 +77,10 @@ class FourierDenoiser(Denoiser):
             return score
         
         # build space
-        space = denoiserParams.thresholding.get_space([1] * self.coefficientLength)
+        mask_ranges = FourierDenoiser.get_multimask_ranges(image.shape, self.coefficientLength)
+        measure = [get_threshold_max(magnitude_spectrum[rng]) for rng in mask_ranges]
+        # measure = [1] * self.coefficientLength
+        space = denoiserParams.thresholding.get_space(measure)
 
         result = denoiserParams.searchMethod(objective_function, space, denoiserParams.iterations)
         return result

@@ -10,3 +10,6 @@ def euclidean_distance(arr1, arr2):
     sum_squared_diff = np.sum(squared_diff)
     distance = np.sqrt(sum_squared_diff)
     return distance
+
+def get_threshold_max(arr):
+    return np.std(arr)

@@ -2,6 +2,7 @@ import numpy as np
 import copy
 import pywt
 from utils.image import *
+from utils.math import get_threshold_max
 from evaluation.denoiser import Denoiser
 
 class WaveletSwtDenoiser(Denoiser):
@@ -47,7 +48,7 @@ class WaveletSwtDenoiser(Denoiser):
         measure = []
         for c in range(len(coeffs[0])):
             for hvd in np.stack([coeffs[x][c][1] for x in range(len(coeffs))], axis=3):
-                measure.append(np.std(hvd))
+                measure.append(get_threshold_max(hvd))
 
         # for coeff in coeffs:
         #     for c in coeff:

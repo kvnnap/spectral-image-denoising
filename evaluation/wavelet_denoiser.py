@@ -2,6 +2,7 @@ import numpy as np
 import copy
 import pywt
 from utils.image import *
+from utils.math import get_threshold_max
 from evaluation.denoiser import Denoiser
 
 class WaveletDenoiser(Denoiser):
@@ -39,7 +40,7 @@ class WaveletDenoiser(Denoiser):
         measure = []
         for i in range(1, len(coeffs[0])):
             for hvd in np.stack([coeffs[x][i] for x in range(0, len(coeffs))], axis=3): #hor,ver,diag
-                measure.append(np.std(hvd))
+                measure.append(get_threshold_max(hvd))
 
         # Define the search space
         space = denoiserParams.thresholding.get_space(measure)

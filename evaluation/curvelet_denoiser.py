@@ -2,6 +2,7 @@ import copy
 import curvelops as cl
 from evaluation.denoiser import Denoiser
 from utils.image import *
+from utils.math import get_threshold_max
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -45,7 +46,7 @@ class CurveletDenoiser(Denoiser):
             for j in range(len(c_struct[0][i])):
                 for c in range(len(c_struct)):
                     wedges_flattened.extend(c_struct[c][i][j].flatten())
-            measure.append(np.std(wedges_flattened))
+            measure.append(get_threshold_max(wedges_flattened))
 
         space = denoiserParams.thresholding.get_space(measure)
 
