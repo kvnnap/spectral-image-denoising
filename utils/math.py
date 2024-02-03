@@ -12,4 +12,4 @@ def euclidean_distance(arr1, arr2):
     return distance
 
 def get_threshold_max(arr):
-    return np.std(arr)
+    return np.max(np.abs(arr))
