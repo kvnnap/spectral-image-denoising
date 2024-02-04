@@ -52,6 +52,7 @@ class Run:
         except Exception as e:
             print(f"Exception in _task: {e}")
             print_obj(dp)
+            sys.stdout.flush()
             raise
 
     def _update(self, result):
@@ -97,7 +98,10 @@ class Run:
                 asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
                 pool.close()
                 pool.join()
-            self.runs = list(map(lambda x: x.get(), asyncResults))
+            for asyncResult in asyncResults:
+                if asyncResult.successful():
+                    self.runs.append(asyncResult.get())
+            #self.runs = list(map(lambda x: x.get(), asyncResults))
 
 def main():
     versionString = get_version().to_string()
