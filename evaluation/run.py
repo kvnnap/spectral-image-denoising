@@ -57,11 +57,12 @@ class Run:
     def _update(self, result):
         self.runsCompleted += 1
         self.progress.update(self.runsCompleted, self.totalRuns, result)
-    
-    def run(self):
-        for p in self.parameterSpace:
-            denParams = []
 
+    @staticmethod
+    def get_denoiser_params(parameter_space):
+        denParams = []
+
+        for p in parameter_space:
             # Generate list of all possible denoiser configurations
             denoiserConfigs = []
             for denoiserConfig in p.denoisers:
@@ -79,13 +80,17 @@ class Run:
                                         for iteration in p.iterations:
                                             denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig)
                                             denParams.append(denoiserParamsString)
-
+        return denParams
+    
+    def run(self):
+        denParams = Run.get_denoiser_params(self.parameterSpace)
         self.totalRuns = len(denParams)
         # distribute tasks using multiprocessing
         if (self.cores == 1):
             for denoiserParams in denParams:
-                self.runs.append(Run._task(denoiserParams))
-                self._update(None)
+                rResult = Run._task(denoiserParams)
+                self.runs.append(rResult)
+                self._update(rResult)
         else:
             asyncResults = []
             with mp.Pool(processes=min(self.cores, len(denParams)), maxtasksperchild=1) as pool:

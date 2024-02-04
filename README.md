@@ -134,7 +134,11 @@ Generate Docker image
 ```bash
 docker build -t kvnnap/python-image-processing .
 docker push kvnnap/python-image-processing
-docker run --rm -it -v $PWD/images:/app/images -v $PWD/config.json:/app/config.json:ro kvnnap/python-image-processing
+docker run --rm -it -v $PWD:/app/data kvnnap/python-image-processing --cores 12
 ```
 
-Happy coding!
+# Recovery
+
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/evaluation/recovery.py --cores 12
+```
