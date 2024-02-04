@@ -35,9 +35,20 @@ def main():
         content = input_file.read()
 
     # Split the content at '}{', add commas, and enclose it in square brackets to create a valid JSON array
-    modified_content = '[' + content.replace('}{', '},{') + ']'
+    #modified_content = '[' + content.replace('}{', '},{') + ']'
 
-    run.runs = jsonpickle.decode(modified_content)
+    # Need to do the following because temp.json may generate reference data.. 
+    mod = content.split('}{')
+    modLength = len(mod)
+    if modLength > 1:
+        mod[0] += '}'
+        mod[-1] = '{' + mod[-1]
+    for i, obj in enumerate(mod):
+        if i != 0 and i != modLength - 1:
+            obj = '{' + obj + '}'
+        run.runs.append(jsonpickle.decode(obj))
+
+    #run.runs = jsonpickle.decode(modified_content)
     runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
 
     save(resultPath, runData)
