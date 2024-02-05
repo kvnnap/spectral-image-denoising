@@ -17,6 +17,7 @@ from denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
 from utils.versioning import get_version
 from utils.serialisation import save, load, print_obj
+from utils.image import set_base_path
 
 class Progress:
     def __init__(self, fn):
@@ -108,6 +109,7 @@ def main():
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace list')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
+    parser.add_argument('--image-base', default='', help='Base path for the images to load')
     parser.add_argument('--temp', default='temp.json', help='Where to save intermediate JSON Run objects')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
     args = parser.parse_args()
@@ -116,6 +118,7 @@ def main():
     resultPath = args.result
     tempPath = args.temp
     cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
+    set_base_path(args.image_base)
     print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
     print(versionString)
 

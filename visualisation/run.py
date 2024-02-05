@@ -12,6 +12,7 @@ from utils.versioning import get_version
 from utils.serialisation import to_string_obj, load
 from utils.string import extract_file_name
 from utils.math import euclidean_distance
+from utils.image import set_base_path
 
 from visualisation.run_viewer import RunViewer
 
@@ -108,8 +109,10 @@ def main():
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Visualises results produced by evaluation/run.py.\n{versionString}')
     parser.add_argument('--result', default='result.json', help='Where to load the JSON RunData object from')
+    parser.add_argument('--image-base', default='', help='Base path for the images to load')
     args = parser.parse_args()
     resultPath = args.result
+    set_base_path(args.image_base)
     runData = load(resultPath)
     app = ResultViewer(runData)
     app.mainloop()

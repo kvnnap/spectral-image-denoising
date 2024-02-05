@@ -3,7 +3,13 @@ import OpenEXR
 import Imath
 import matplotlib.pyplot as plt
 
-from utils.string import extract_file_extension
+from utils.string import extract_file_extension, concat_paths
+
+BASE_PATH = ''
+
+def set_base_path(base_path):
+    global BASE_PATH
+    BASE_PATH = base_path
 
 def load_image_raw_file(file_path):
     with open(file_path, 'rb') as f:
@@ -69,6 +75,7 @@ def tone_map(image_data):
 
 def load_image(path, gray = True, tm = True):
     # Select image format
+    path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
     image = load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
     if (gray):
