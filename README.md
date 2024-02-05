@@ -137,8 +137,22 @@ docker push kvnnap/python-image-processing
 docker run --rm -it -v $PWD:/app/data kvnnap/python-image-processing --cores 12
 ```
 
-# Recovery
+## Recovery
 
 ```bash
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/evaluation/recovery.py --cores 12
+```
+
+## Visualisation
+
+```bash
+docker run --rm -it --entrypoint python3 --env DISPLAY=:0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/app/data kvnnap/python-image-processing /app/visualisation/run.py --result paper_exp_1-result.json --image-base images/exp_1
+```
+
+maybe can also alias.
+
+```bash
+alias result_viewer="docker run --rm -it --entrypoint python3 --env DISPLAY=:0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/app/data kvnnap/python-image-processing /app/visualisation/run.py"
+
+result_viewer --result paper_exp_1-result.json --image-base images/exp_1
 ```
