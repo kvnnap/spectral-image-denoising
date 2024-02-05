@@ -3,7 +3,7 @@ from tkinter import filedialog
 from visualisation.result_image_processor import ResultImageProcessor
 from visualisation.result_plot import ResultPlot
 from utils.image import tone_alpha_map
-from utils.image import save_image_as_png
+from utils.image import save_image
 from utils.image import interpolate_image_to_range
 
 import numpy as np
@@ -125,12 +125,12 @@ class RunViewer():
         name = f'{dp.name}-{dp.id}'
         dir_name = 'screenshots'
         path = f'{dir_name}/{name}'
-        save_image_as_png(image, f'{path}-noisy.png')
-        save_image_as_png(denImage, f'{path}-denoised.png')
+        save_image(image, f'{path}-noisy')
+        save_image(denImage, f'{path}-denoised')
         if self.showCoeff.get():
-            save_image_as_png(interpolate_image_to_range(coeffImage), f'{path}-coefficients.png')
+            save_image(interpolate_image_to_range(coeffImage), f'{path}-coefficients')
         plotImage = self.resultPlot.plot_to_image(self.run.denoiserResult.func_vals)
-        save_image_as_png(plotImage, f'{path}-plot.png')
+        save_image(plotImage, f'{path}-plot')
         self.toggle_loading()
 
     def closing_window(self, event = None):

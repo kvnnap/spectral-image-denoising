@@ -46,6 +46,26 @@ def load_exr_image(file_path):
 
     return image_array
 
+def save_image_as_exr(image_array, file_path):
+    # Convert the image array to uint8 format
+    rgb_array = np.array(image_array, dtype=np.float32)
+
+    # Create an OpenEXR header with FLOAT pixel type
+    header = OpenEXR.Header(rgb_array.shape[1], rgb_array.shape[0])
+
+    num_channels = rgb_array.shape[2]
+
+    header['channels'] = dict(('RGB'[i], Imath.Channel(Imath.PixelType(Imath.PixelType.FLOAT))) for i in range(num_channels))
+
+    # Create an OpenEXR output file
+    exr_file = OpenEXR.OutputFile(file_path, header)
+
+    # Write the RGB data to the file
+    exr_file.writePixels(dict(('RGB'[i], rgb_array[:,:,i].tobytes()) for i in range(num_channels)))
+
+    # Close the file
+    exr_file.close()
+
 def save_image_as_png(image_array, file_path):
     # Convert the image array to uint8 format
     image_array = np.array(image_array, dtype=np.uint8)
@@ -56,6 +76,11 @@ def save_image_as_png(image_array, file_path):
 
     # Save
     plt.imsave(file_path, image_array, cmap='gray')
+
+def save_image(image_array, file_path):
+    save_image_as_png(image_array, file_path + '.png')
+    save_image_as_exr(image_array, file_path + '.exr')
+
 
 def convert_to_grayscale(image_data):
     # Convert RGB pixel data to grayscale using the formula:
