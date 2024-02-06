@@ -117,8 +117,6 @@ class RunViewer():
         if (self.toneMap.get()):
             image = tone_alpha_map(image)
             denImage = tone_alpha_map(denImage)
-        image *= 255
-        denImage = np.clip(denImage, 0, 1) * 255
         
         dp = self.run.denoiserParams
         #full_name = f'{dp.name}-{dp.id}-{dp.denoiser["name"]}_{dp.denoiser["coefficientLength"]}-{dp.search}-{dp.thresholding}-{dp.imageLoader}-{dp.metric}-{dp.iterations}'
@@ -130,7 +128,7 @@ class RunViewer():
         if self.showCoeff.get():
             save_image(interpolate_image_to_range(coeffImage), f'{path}-coefficients')
         plotImage = self.resultPlot.plot_to_image(self.run.denoiserResult.func_vals)
-        save_image(plotImage, f'{path}-plot')
+        save_image(interpolate_image_to_range(plotImage), f'{path}-plot')
         self.toggle_loading()
 
     def closing_window(self, event = None):

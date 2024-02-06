@@ -67,6 +67,9 @@ def save_image_as_exr(image_array, file_path):
     exr_file.close()
 
 def save_image_as_png(image_array, file_path):
+    # clip to sane ranges
+    image_array = np.clip(image_array, 0, 1) * 255
+
     # Convert the image array to uint8 format
     image_array = np.array(image_array, dtype=np.uint8)
 
@@ -217,5 +220,5 @@ def list_to_square_image(arr, pix_size=480):
         
     return square_image
 
-def interpolate_image_to_range(image, im_range=(0, 255)):
+def interpolate_image_to_range(image, im_range=(0, 1)):
     return np.interp(image, (image.min(), image.max()), im_range)
