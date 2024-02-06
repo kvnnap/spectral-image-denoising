@@ -43,7 +43,8 @@ For wavelet families and possible variations see https://pywavelets.readthedocs.
         ],
         "metrics": [
             "mse",
-            "ssim"
+            "ssim",
+            "mse_ssim"
         ],
         "thresholds": [
             "mult",

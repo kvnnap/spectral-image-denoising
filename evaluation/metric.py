@@ -10,6 +10,9 @@ def local_ssim(ref, noisy):
         return 0
     return -ssim(ref, noisy, data_range=range, channel_axis=2).item()
 
+def local_mse_ssim(ref, noisy):
+    return local_mse(ref, noisy) + local_ssim(ref, noisy)
+
 class MetricFactory:
     @staticmethod
     def create(metricName):
@@ -18,5 +21,7 @@ class MetricFactory:
             return local_mse
         elif(name == "ssim"):
             return local_ssim
+        elif(name == "mse_ssim"):
+            return local_mse_ssim
         else:
             raise ValueError(f"Invalid metric name {metricName}")
