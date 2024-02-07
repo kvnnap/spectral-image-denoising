@@ -3,6 +3,7 @@ from evaluation.denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import MetricFactory
 from evaluation.thresholds import ThresholdFactory
+from evaluation.metric import *
 
 class ResultImageProcessor():
     def __init__(self, run):
@@ -26,7 +27,12 @@ class ResultImageProcessor():
     
     def compute_score(self, coeffId = None):
         (_, reconstructedImage, _) = self.get(False, coeffId)
-        return (self.metricMethod(self.refImage, self.image), self.metricMethod(self.refImage, reconstructedImage))
+        ret_obj = {
+            'mse': (local_mse(self.refImage, self.image), local_mse(self.refImage, reconstructedImage)),
+            'ssim': (local_ssim(self.refImage, self.image), local_ssim(self.refImage, reconstructedImage)),
+            'psnr': (local_psnr(self.refImage, self.image), local_psnr(self.refImage, reconstructedImage)),
+        }
+        return ret_obj
     
     def update_image_path(self, path):
         self.image = self.imageLoaderMethod(path)

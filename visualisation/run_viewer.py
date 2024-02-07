@@ -5,6 +5,7 @@ from visualisation.result_plot import ResultPlot
 from utils.image import tone_alpha_map
 from utils.image import save_image
 from utils.image import interpolate_image_to_range
+from evaluation.metric import local_mse, local_ssim, local_psnr
 
 import numpy as np
 
@@ -48,8 +49,14 @@ class RunViewer():
         self.saveImagesButton = tk.Button(self.subWindow, text='Save Images', command=self.save_images)
         self.saveImagesButton.pack()
 
-        self.scoreLabel = tk.Label(self.subWindow, text='0')
-        self.scoreLabel.pack()
+        self.mseLabel = tk.Label(self.subWindow, text='MSE: 0')
+        self.mseLabel.pack()
+
+        self.ssimLabel = tk.Label(self.subWindow, text='SSIM: 0')
+        self.ssimLabel.pack()
+
+        self.psnrLabel = tk.Label(self.subWindow, text='PSNR: 0')
+        self.psnrLabel.pack()
 
         self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
@@ -65,7 +72,10 @@ class RunViewer():
             image = self.backImage + image
             denImage = self.backImage + denImage
         self.plot_raw(coeffImage, image, denImage)
-        self.scoreLabel.config(text=f"{self.resImageProc.compute_score(self.currentCoeffId)}")
+        scores = self.resImageProc.compute_score(self.currentCoeffId)
+        self.mseLabel.config(text=f"MSE: { scores['mse'] }")
+        self.ssimLabel.config(text=f"SSIM: { scores['ssim'] }")
+        self.psnrLabel.config(text=f"PSNR: { scores['psnr'] }")
         self.toggle_loading()
     
     def plot_raw(self, coeffImage, image, denImage):
