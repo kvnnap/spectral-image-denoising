@@ -44,7 +44,8 @@ For wavelet families and possible variations see https://pywavelets.readthedocs.
         "metrics": [
             "mse",
             "ssim",
-            "mse_ssim"
+            "mse_ssim",
+            "psnr"
         ],
         "thresholds": [
             "mult",
