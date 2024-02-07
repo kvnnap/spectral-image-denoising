@@ -26,7 +26,7 @@ def local_psnr(ref, noisy):
     range = get_data_range(ref, noisy)
     if (range == 0):
         return float('inf')
-    return psnr(ref, noisy, data_range=range)
+    return -psnr(ref, noisy, data_range=range)
 
 def local_ssim(ref, noisy):
     range = get_data_range(ref, noisy)
