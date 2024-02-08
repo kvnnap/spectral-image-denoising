@@ -7,7 +7,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
 from utils.serialisation import save, load
-from utils.image import set_base_path, load_image
+from utils.image import set_base_path
+from evaluation.image_loader import ImageLoaderFactory
 
 def main():
     versionString = get_version().to_string()
@@ -31,10 +32,11 @@ def main():
             continue
         fixCount += 1
         # Load image to get shape
-        imagePath = dp.pairImage[0]
-        if imagePath not in imgDict:
-            imgDict[imagePath] = (1.0 / np.prod(load_image(imagePath).shape)).item()
-        shapeDimReciprocal = imgDict[imagePath]
+        imageDictEntry = dp.pairImage[0] + '-' + dp.imageLoader
+        if imageDictEntry not in imgDict:
+            imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
+            imgDict[imageDictEntry] = (1.0 / np.prod(imageLoaderMethod(dp.pairImage[0]).shape)).item()
+        shapeDimReciprocal = imgDict[imageDictEntry]
         
         dr = run.denoiserResult
         dr.fun *= shapeDimReciprocal
