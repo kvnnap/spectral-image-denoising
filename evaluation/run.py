@@ -9,11 +9,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.run import RunData, RunResult
 from core.denoiser import DenoiserRunParamsString
-from metric import MetricFactory
-from thresholds import ThresholdFactory
-from search import SearchFactory
-from denoiser import DenoiserRunParams
-from denoiser_factory import DenoiserFactory
+from evaluation.metric import MetricFactory
+from evaluation.thresholds import ThresholdFactory
+from evaluation.search import SearchFactory
+from evaluation.denoiser import DenoiserRunParams
+from evaluation.denoiser_factory import DenoiserFactory
 from evaluation.image_loader import ImageLoaderFactory
 from utils.versioning import get_version
 from utils.serialisation import save, load, print_obj

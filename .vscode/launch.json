@@ -2,14 +2,14 @@
     "configurations": [
         {
             "name": "Python: File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "justMyCode": true
         },
         {
             "name": "Python: Evaluation",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/evaluation/run.py",
             "args": ["--result", "result.json", "--cores", "1"],
@@ -17,7 +17,7 @@
         },
         {
             "name": "Python: Visualisation",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/visualisation/run.py",
             "args": ["--result", "results/result.relative.json"],

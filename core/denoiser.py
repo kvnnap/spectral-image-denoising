@@ -19,7 +19,7 @@ class DenoiserRunParamsString:
         elif key == 'denoiser':
             return self.denoiser['name'] if 'name' in self.denoiser else self.denoiser
         elif key == 'denoiser_coeff':
-            return '/'.join(self.denoiser.values() if 'name' in self.denoiser else [self.denoiser])
+            return '/'.join([str(x) for x in self.denoiser.values()] if 'name' in self.denoiser else [self.denoiser])
         elif key in self.__dict__:
             return self.__dict__[key]
         else:

@@ -142,7 +142,7 @@ docker run --rm -it -v $PWD:/app/data kvnnap/python-image-processing --cores 12
 ## Recovery
 
 ```bash
-docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/evaluation/recovery.py --cores 12
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/recover.py --cores 12
 ```
 
 ## Visualisation
@@ -157,4 +157,15 @@ maybe can also alias.
 alias result_viewer="docker run --rm -it --entrypoint python3 --env DISPLAY=:0 -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/app/data kvnnap/python-image-processing /app/visualisation/run.py"
 
 result_viewer --result paper_exp_1-result.json --image-base images/exp_1
+```
+
+## Merge
+
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/merge.py --result r1.json --result r2.json --result r3.json --merged-result merged.json
+```
+
+## MSE FIX
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/fix_mse.py --result res.json --fixed-result merged.json --image-base images/exp_1
 ```

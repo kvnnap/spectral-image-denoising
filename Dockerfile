@@ -59,6 +59,7 @@ COPY --chown=$USER:$USER core /app/core
 COPY --chown=$USER:$USER evaluation /app/evaluation
 COPY --chown=$USER:$USER visualisation /app/visualisation
 COPY --chown=$USER:$USER utils /app/utils
+COPY --chown=$USER:$USER tools /app/tools
 COPY --chown=$USER:$USER version.py /app
 ENV FFTW=$HOME/opt/fftw-2.1.5 FDCT=$HOME/opt/CurveLab-2.1.3
 ENTRYPOINT ["python3", "-Xfrozen_modules=off", "/app/evaluation/run.py"]
