@@ -21,7 +21,7 @@ class ResultViewer(tk.Tk):
 
         # process data to rows/cols
         self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff']
-        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'denoiser_coeff']) }
+        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score']) }
         row = []
         scoreIndex = self.header.index('score')
         for run in runData.runs:
@@ -68,7 +68,10 @@ class ResultViewer(tk.Tk):
             for j, f in enumerate(self.filterDict[key]):
                 ck_var = tk.BooleanVar()
                 ck = tk.Checkbutton(group_frame, text=f, variable=ck_var)
-                ck.grid(row=j//2, column=j % 2)
+                if key == 'ref-noisy' or key == 'denoiser_coeff':
+                    ck.grid(row=j//2, column=j % 2)
+                else:
+                    ck.grid(row=j, column=0)
                 self.filterValues[key].append((f, ck_var))
         self.filterButton = tk.Button(self.checkboxFrame, text='Apply', command=self.apply_filter)
         self.filterButton.grid(row=0, column=i+1)
