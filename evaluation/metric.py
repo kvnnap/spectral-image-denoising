@@ -1,9 +1,11 @@
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import mean_squared_error as mse_fn
 
 def local_mse(ref, noisy):
-    return np.sum((ref - noisy) ** 2).item()
+    #return np.mean((ref - noisy) ** 2).item()
+    return mse_fn(ref, noisy).item()
 
 # def luma(image):
 #     return (0.299 * image[:, :, 2] + 0.587 * image[:, :, 1] + 0.114 * image[:, :, 0]).astype(np.uint8)
@@ -15,23 +17,22 @@ def get_data_range(ref, noisy):
 
 def local_psnr_old(ref, noisy):
     mse = local_mse(ref, noisy)
-    #mse = np.mean((ref.astype(np.float64) / 255 - noisy.astype(np.float64) / 255) ** 2)
-    if mse == 0:
-        return float('inf')
     range = get_data_range(ref, noisy)
+    if mse == 0 or range == 0:
+        return float('-inf')
     psnr = 10 * np.log10(range ** 2 / mse)
-    return psnr
+    return -psnr.item()
 
 def local_psnr(ref, noisy):
     range = get_data_range(ref, noisy)
     if (range == 0):
-        return float('inf')
-    return -psnr(ref, noisy, data_range=range)
+        return float('-inf')
+    return -psnr(ref, noisy, data_range=range).item()
 
 def local_ssim(ref, noisy):
     range = get_data_range(ref, noisy)
     if (range == 0):
-        return 0
+        return -1.0
     return -ssim(ref, noisy, data_range=range, channel_axis=2).item()
 
 def local_mse_ssim(ref, noisy):
