@@ -145,12 +145,24 @@ class ResultViewer(tk.Tk):
 def main():
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Visualises results produced by evaluation/run.py.\n{versionString}')
-    parser.add_argument('--result', default='result.json', help='Where to load the JSON RunData object from')
+    parser.add_argument('--result', help='Where to load the JSON RunData object from', action='append')
     parser.add_argument('--image-base', default='', help='Base path for the images to load')
     args = parser.parse_args()
     resultPath = args.result
+    if not resultPath:
+        resultPath = ['result.json']
     set_base_path(args.image_base)
-    runData = load(resultPath)
+    runData = load(resultPath[0])
+    # Temporary solution, merge results in one view
+    # IMPORTANT: NOT ALL INFO FROM BOTH RUNS IS PRESERVED
+    # RUN IDS are changed to avoid duplicates in views
+    for rPath in resultPath[1:]:
+        otherRunData = load(rPath)
+        runData.parameterSpace.extend(otherRunData.parameterSpace)
+        for otherRunDatum in otherRunData.runs:
+            otherRunDatum.denoiserParams.id += runData.totalRuns
+            runData.runs.append(otherRunDatum)
+        runData.totalRuns += otherRunData.totalRuns
     app = ResultViewer(runData)
     app.mainloop()
     
