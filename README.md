@@ -169,3 +169,8 @@ docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-p
 ```bash
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/fix_mse.py --result res.json --fixed-result merged.json --image-base images/exp_1
 ```
+
+## Cosine similarity
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/cosine_similarity_interactive.py --result res.json
+```

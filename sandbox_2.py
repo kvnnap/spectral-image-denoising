@@ -43,3 +43,5 @@ print((result, result2, result3))
 #                 "--result", "results/paper_exp_1_gray-result.json",  
 #                 "--image-base", "images/exp_1"
 #             ]
+
+#"args": ["--result", "results/paper_exp_1_gray-result.merged.mse_fixed.json", "--image-base", "images/exp_1"],
