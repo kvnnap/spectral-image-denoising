@@ -45,7 +45,8 @@ For wavelet families and possible variations see https://pywavelets.readthedocs.
             "mse",
             "ssim",
             "mse_ssim",
-            "psnr"
+            "psnr",
+            "hdrvdp3"
         ],
         "thresholds": [
             "mult",
@@ -174,3 +175,21 @@ docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-p
 ```bash
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/cosine_similarity_interactive.py --result res.json
 ```
+
+## Matlab hdrvdp3 integration
+
+See matlab folder for the scripts that were used to generate the hdrpy package/module
+
+Current metric is hardcoded with settings for 24 inch Full HD display, observed from 30cm distance
+
+### Downgrade
+
+Needed to downgrade to bullseye because matlab install a C++ standard library that is old. 
+One workaround is to simply delete this old library from the Matlab sys os folder (and possibly others)
+
+see here for more info:
+
+https://www.mathworks.com/matlabcentral/answers/1907290-how-to-manually-select-the-libstdc-library-to-use-to-resolve-a-version-glibcxx_-not-found
+
+
+

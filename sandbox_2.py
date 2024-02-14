@@ -5,6 +5,9 @@ import cv2
 
 ref_image = load_image('images/exp_1/povray_reflect_caustics_8.exr', False, False)
 noisy_image = load_image('images/exp_1/povray_reflect_caustics_2.exr', False, False)
+# ref = matlab.single(ref_image)
+score = local_hdrvdp3(ref_image, noisy_image)
+
 score = local_ssim(ref_image, noisy_image)
 
 print(f'rgb score: {score}')
@@ -13,6 +16,7 @@ gref_image = convert_to_grayscale(ref_image)
 gnoisy_image = convert_to_grayscale(noisy_image)
 gray_score = local_ssim(gref_image, gnoisy_image)
 print(f'gray score: {gray_score}')
+
 
 tm_ref_image = tone_map(ref_image)
 tm_noisy_image = tone_map(noisy_image)

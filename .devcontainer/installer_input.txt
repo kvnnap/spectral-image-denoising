@@ -1,0 +1,11 @@
+agreeToLicense=yes
+outputFile=mylog.txt
+product.MATLAB Runtime - Core
+product.MATLAB Runtime - Graphics
+product.MATLAB Runtime - Non Interactive MATLAB
+product.MATLAB Runtime - Numerics
+product.MATLAB Runtime - Python
+product.MATLAB Runtime - Image Processing Toolbox Addin
+product.MATLAB Runtime - Statistics and Machine Learning Toolbox Addin
+product.MATLAB Runtime - Parallel Computing Toolbox Cluster Addin
+product.MATLAB Runtime - Parallel Computing Toolbox GPU Addin
