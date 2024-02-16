@@ -46,8 +46,14 @@ ppd = h.hdrvdp_pix_per_deg(24.0, matlab.double([1920, 1080]), 0.30)
 # except Exception as e:
 #     print('Error initializing hdrvdp3 package\\n:{}'.format(e))
 #     exit(1)
+
+# if (ref.flags.contiguous == False and ref.flags.c_contiguous == False and ref.flags.f_contiguous == False) or (noisy.flags.contiguous == False and noisy.flags.c_contiguous == False and noisy.flags.f_contiguous == False):
+# if (ref.flags.contiguous == False) or (noisy.flags.contiguous == False):
+#     print('oops')
 def local_hdrvdp3(ref, noisy):
     s = 'luma-display' if get_channel_count(noisy) == 1 else 'rgb-native'
+    noisy = np.ascontiguousarray(noisy)
+    ref = np.ascontiguousarray(ref)
     result = h.hdrvdp3('side-by-side', noisy, ref, s, ppd, ['quiet', True])
     return -result['Q']
 
