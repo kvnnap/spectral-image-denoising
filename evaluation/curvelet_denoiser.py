@@ -31,7 +31,7 @@ class CurveletDenoiser(Denoiser):
         return (FDCT, c_struct)
     
     def recompose(self, FDCT, c_struct):
-        return merge_channels(list(map(lambda x: (FDCT.H @ (FDCT.vect(x))).real, c_struct)))
+        return merge_channels(list(map(lambda x: np.clip((FDCT.H @ (FDCT.vect(x))).real, 0, None), c_struct)))
     
     # need to parameterise wavelet_name, level, masking type (soft, hard)
     def run(self, denoiserParams):

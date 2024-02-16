@@ -27,7 +27,7 @@ class WaveletDenoiser(Denoiser):
         return coeffs
     
     def recompose(self, coeffs):
-        filtered_img = list(map(lambda c: pywt.waverec2(c, self.waveletName), coeffs))
+        filtered_img = list(map(lambda c: np.clip(pywt.waverec2(c, self.waveletName), 0, None), coeffs))
         return merge_channels(filtered_img)
     
     # need to parameterise wavelet_name, level, masking type (soft, hard)
