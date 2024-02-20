@@ -65,7 +65,7 @@ class FourierDenoiser(Denoiser):
             retList.append((magnitude_spectrum, phase_spectrum))
         return tuple([np.stack(list(x), axis=-1) for x in zip(*retList)])
 
-    def run(self, denoiserParams):
+    def run(self, denoiserParams, dpString):
         ref_image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[0])
         image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[1])
 
@@ -73,7 +73,7 @@ class FourierDenoiser(Denoiser):
 
         def objective_function(x):
             reconstructed_image = FourierDenoiser.get_image_ifft(image.shape, magnitude_spectrum, phase_spectrum, denoiserParams.thresholding, x)
-            score = denoiserParams.metric(ref_image, reconstructed_image)
+            score = denoiserParams.metric(ref_image, reconstructed_image, dpString)
             return score
         
         # build space

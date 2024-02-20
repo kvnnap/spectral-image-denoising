@@ -9,7 +9,7 @@ class DenoiserRunParams:
         self.denoiserMethod = denoiserMethod
 
 class Denoiser:
-    def run(self, denoiserParams):
+    def run(self, denoiserParams, dpString):
         return None
     def get_image(self, image, coeff, thresholding):
         return None

@@ -47,7 +47,7 @@ class Run:
         denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), imageLoaderMethod, metricMethod, thresholdMethod, searchMethod, iteration, denoiserMethod)
         try:
             start = time.perf_counter_ns()
-            run = denoiserMethod.run(denoiserParams)
+            run = denoiserMethod.run(denoiserParams, dp)
             finish = time.perf_counter_ns()
             return RunResult(dp, run, finish - start)
         except Exception as e:

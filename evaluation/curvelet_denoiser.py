@@ -34,7 +34,7 @@ class CurveletDenoiser(Denoiser):
         return merge_channels(list(map(lambda x: np.clip((FDCT.H @ (FDCT.vect(x))).real, 0, None), c_struct)))
     
     # need to parameterise wavelet_name, level, masking type (soft, hard)
-    def run(self, denoiserParams):
+    def run(self, denoiserParams, dpString):
         ref_image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[0])
         image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[1])
 
@@ -52,7 +52,7 @@ class CurveletDenoiser(Denoiser):
 
         def objective_function(x):
             c_copy = CurveletDenoiser.get_fdct_struct(c_struct, x, denoiserParams.thresholding)
-            score = denoiserParams.metric(ref_image, self.recompose(FDCT, c_copy))
+            score = denoiserParams.metric(ref_image, self.recompose(FDCT, c_copy), dpString)
             return score
 
         result = denoiserParams.searchMethod(objective_function, space, denoiserParams.iterations)

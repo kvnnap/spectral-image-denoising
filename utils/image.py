@@ -89,7 +89,8 @@ def convert_to_grayscale(image_data):
     # Convert RGB pixel data to grayscale using the formula:
     # Y = 0.299*R + 0.587*G + 0.114*B
     # See https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale for more information
-    grayscale_data = 0.299*image_data[:,:,0] + 0.587*image_data[:,:,1] + 0.114*image_data[:,:,2]
+    #grayscale_data = 0.299*image_data[:,:,0] + 0.587*image_data[:,:,1] + 0.114*image_data[:,:,2]
+    grayscale_data = 0.2126729*image_data[:,:,0] + 0.7151522*image_data[:,:,1] + 0.0721750*image_data[:,:,2]
 
     # Convert the 2D numpy array to one with shape (height, width, 1) (remove braces to get 2d shape)
     return grayscale_data[:, :, np.newaxis]

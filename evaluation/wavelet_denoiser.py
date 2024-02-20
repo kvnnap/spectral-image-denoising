@@ -31,7 +31,7 @@ class WaveletDenoiser(Denoiser):
         return merge_channels(filtered_img)
     
     # need to parameterise wavelet_name, level, masking type (soft, hard)
-    def run(self, denoiserParams):
+    def run(self, denoiserParams, dpString):
         ref_image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[0])
         image = denoiserParams.imageLoaderMethod(denoiserParams.pairImage[1])
 
@@ -49,7 +49,7 @@ class WaveletDenoiser(Denoiser):
             coeffCopy = copy.deepcopy(coeffs)
             WaveletDenoiser.filter_coeffs(coeffCopy, x, denoiserParams.thresholding)
             filtered_img = self.recompose(coeffCopy)
-            score = denoiserParams.metric(ref_image, filtered_img)
+            score = denoiserParams.metric(ref_image, filtered_img, dpString)
             return score
 
         result = denoiserParams.searchMethod(objective_function, space, denoiserParams.iterations)
