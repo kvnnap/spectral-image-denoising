@@ -31,15 +31,22 @@ class ResultImageProcessor():
             'mse': (local_mse(self.refImage, self.image), local_mse(self.refImage, reconstructedImage)),
             'ssim': (local_ssim(self.refImage, self.image), local_ssim(self.refImage, reconstructedImage)),
             'psnr': (local_psnr(self.refImage, self.image), local_psnr(self.refImage, reconstructedImage)),
+            'hdrvdp3': (local_hdrvdp3(self.refImage, self.image), local_hdrvdp3(self.refImage, reconstructedImage))
         }
         return ret_obj
     
     def update_image_path(self, path):
-        self.image = self.imageLoaderMethod(path)
-        self.get.cache_clear()
+        self.update_image(self.imageLoaderMethod(path))
 
     def update_ref_image_path(self, path):
-        self.refImage = self.imageLoaderMethod(path)
+        self.update_ref_image(self.imageLoaderMethod(path))
+
+    def update_image(self, image):
+        self.image = image
+        self.get.cache_clear()
+
+    def update_ref_image(self, refImage):
+        self.refImage = refImage
 
     def get_image(self, path):
         return self.imageLoaderMethod(path)
