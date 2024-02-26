@@ -1,6 +1,6 @@
 #!/bin/bash
 
-result="${1:-"results/paper_exp_1_gray-result_clip.json"}"
+result="${1:-"results/paper_exp_1_gray_latest-result.json"}"
 
 echo "Viewing cosines for result '$result'"
 

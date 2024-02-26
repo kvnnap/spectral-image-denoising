@@ -6,7 +6,7 @@
 #   --result results/paper_exp_1_gray-result.json \
 # 	--image-base images/exp_1
 
-result="${1:-"results/paper_exp_1_gray-result_clip.json"}"
+result="${1:-"results/paper_exp_1_gray_latest-result.json"}"
 image_base="${2:-"images/exp_1"}"
 
 echo "Viewing result '$result'. Image base is: '$image_base'"
