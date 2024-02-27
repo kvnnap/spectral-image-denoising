@@ -32,6 +32,9 @@ class ResultViewer(tk.Tk):
             rowItem[scoreIndex] = run.denoiserResult.fun
             row.append(rowItem)
         
+        # Only filter categories with more than 1 item
+        self.filterDict = {k: v for k, v in self.filterDict.items() if len(v) > 1}
+        
         # continue
         self.title('Result Explorer')
         self.isLoading = False
