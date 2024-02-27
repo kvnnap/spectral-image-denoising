@@ -58,6 +58,9 @@ class RunViewer():
         self.psnrLabel = tk.Label(self.subWindow, text='PSNR: 0')
         self.psnrLabel.pack()
 
+        self.hdrvdpLabel = tk.Label(self.subWindow, text='HDRVDP3: 0')
+        self.hdrvdpLabel.pack()
+
         self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
         self.plot()
@@ -76,6 +79,7 @@ class RunViewer():
         self.mseLabel.config(text=f"MSE: { scores['mse'] }")
         self.ssimLabel.config(text=f"SSIM: { scores['ssim'] }")
         self.psnrLabel.config(text=f"PSNR: { scores['psnr'] }")
+        self.hdrvdpLabel.config(text=f"HDRVDP3: { scores['hdrvdp3'] }")
         self.toggle_loading()
     
     def plot_raw(self, coeffImage, image, denImage):

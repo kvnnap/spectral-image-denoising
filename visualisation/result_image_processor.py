@@ -8,6 +8,7 @@ from evaluation.metric import *
 class ResultImageProcessor():
     def __init__(self, run):
         dp = run.denoiserParams
+        self.denoiserParams = run.denoiserParams
         self.run = run
         self.imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
         self.thresholdMethod = ThresholdFactory.create(dp.thresholding)
@@ -28,10 +29,10 @@ class ResultImageProcessor():
     def compute_score(self, coeffId = None):
         (_, reconstructedImage, _) = self.get(False, coeffId)
         ret_obj = {
-            'mse': (local_mse(self.refImage, self.image), local_mse(self.refImage, reconstructedImage)),
-            'ssim': (local_ssim(self.refImage, self.image), local_ssim(self.refImage, reconstructedImage)),
-            'psnr': (local_psnr(self.refImage, self.image), local_psnr(self.refImage, reconstructedImage)),
-            'hdrvdp3': (local_hdrvdp3(self.refImage, self.image), local_hdrvdp3(self.refImage, reconstructedImage))
+            'mse': (local_mse(self.refImage, self.image, self.denoiserParams), local_mse(self.refImage, reconstructedImage, self.denoiserParams)),
+            'ssim': (local_ssim(self.refImage, self.image, self.denoiserParams), local_ssim(self.refImage, reconstructedImage, self.denoiserParams)),
+            'psnr': (local_psnr(self.refImage, self.image, self.denoiserParams), local_psnr(self.refImage, reconstructedImage, self.denoiserParams)),
+            'hdrvdp3': (local_hdrvdp3(self.refImage, self.image, self.denoiserParams), local_hdrvdp3(self.refImage, reconstructedImage, self.denoiserParams))
         }
         return ret_obj
     
