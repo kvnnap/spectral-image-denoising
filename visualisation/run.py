@@ -64,20 +64,21 @@ class ResultViewer(tk.Tk):
         self.checkboxFrame = tk.Frame(self.frame)
         self.checkboxFrame.grid(row=2, column=0)
         self.filterValues = {}
-        for i, key in enumerate(self.filterDict.keys()):
-            group_frame = tk.LabelFrame(self.checkboxFrame, text=key)
-            group_frame.grid(row=0, column=i)
-            self.filterValues[key] = []
-            for j, f in enumerate(sorted(self.filterDict[key])):
-                ck_var = tk.BooleanVar()
-                ck = tk.Checkbutton(group_frame, text=f, variable=ck_var)
-                if key == 'ref-noisy' or key == 'denoiser_coeff':
-                    ck.grid(row=j//2, column=j % 2)
-                else:
-                    ck.grid(row=j, column=0)
-                self.filterValues[key].append((f, ck_var))
-        self.filterButton = tk.Button(self.checkboxFrame, text='Apply', command=self.apply_filter)
-        self.filterButton.grid(row=0, column=i+1)
+        if len(self.filterDict) > 0:
+            for i, key in enumerate(self.filterDict.keys()):
+                group_frame = tk.LabelFrame(self.checkboxFrame, text=key)
+                group_frame.grid(row=0, column=i)
+                self.filterValues[key] = []
+                for j, f in enumerate(sorted(self.filterDict[key])):
+                    ck_var = tk.BooleanVar()
+                    ck = tk.Checkbutton(group_frame, text=f, variable=ck_var)
+                    if key == 'ref-noisy' or key == 'denoiser_coeff':
+                        ck.grid(row=j//2, column=j % 2)
+                    else:
+                        ck.grid(row=j, column=0)
+                    self.filterValues[key].append((f, ck_var))
+            self.filterButton = tk.Button(self.checkboxFrame, text='Apply', command=self.apply_filter)
+            self.filterButton.grid(row=0, column=i+1)
 
     def apply_filter(self):
         filters = {}
