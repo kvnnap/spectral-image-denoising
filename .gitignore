@@ -2,6 +2,7 @@
 /.devcontainer/hdrpy.zip
 /images/
 /screenshots/
+/smb/
 /results/
 __pycache__/
 

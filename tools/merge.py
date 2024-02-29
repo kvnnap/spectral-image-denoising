@@ -36,7 +36,6 @@ def main():
     runData.cores = -1
     
     save(mergedResultPath, runData)
-    save(f'{mergedResultPath}.norefs.json', runData, False)
 
     print(f'Merged {len(runData.runs)} results')
 

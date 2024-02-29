@@ -135,7 +135,7 @@ def main():
     runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
 
     save(resultPath, runData)
-    save(f'{resultPath}.norefs.json', runData, False)
+    #save(f'{resultPath}.norefs.json', runData, False)
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.

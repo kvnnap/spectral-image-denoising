@@ -52,7 +52,6 @@ def main():
     runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
 
     save(resultPath, runData)
-    save(f'{resultPath}.norefs.json', runData, False)
 
     print(f'Recovered {len(run.runs)} results')
 
