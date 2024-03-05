@@ -8,6 +8,7 @@ class ParameterSpace:
         self.searchMethods = [] # naive, naive_descending, gp_minimize
         self.iterations = [] # applies to ALL
         self.denoisers = [] # fourier, wavelet, wavelet_swt, curvelet etc
+        self.samples = 1 # How many times are we re-running runs?
 
 class RunResult:
     def __init__(self, denoiserParams, denoiserResult, time):

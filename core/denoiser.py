@@ -2,7 +2,7 @@ from utils.string import extract_file_name
 from utils.serialisation import to_string_obj
 
 class DenoiserRunParamsString:
-    def __init__(self, id, name, pairImage, imageLoader, metric, thresholding, search, iterations, denoiser):
+    def __init__(self, id, name, pairImage, imageLoader, metric, thresholding, search, iterations, denoiser, sample):
         self.id = id
         self.name = name
         self.pairImage = pairImage
@@ -12,6 +12,7 @@ class DenoiserRunParamsString:
         self.search = search
         self.iterations = iterations
         self.denoiser = denoiser
+        self.sample = sample
     
     def get_value(self, key):
         if key == 'ref-noisy':

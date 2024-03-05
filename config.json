@@ -2,6 +2,7 @@
     {
         "py/object": "core.run.ParameterSpace",
         "name": "dice",
+        "samples": 1,
         "images": [
             {
                 "py/tuple": [

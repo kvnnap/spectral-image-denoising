@@ -7,7 +7,7 @@ import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.run import RunData, RunResult
+from core.run import RunData, RunResult, ParameterSpace
 from core.denoiser import DenoiserRunParamsString
 from evaluation.metric import MetricFactory
 from evaluation.thresholds import ThresholdFactory
@@ -39,12 +39,13 @@ class Run:
     def _task(dp):
         pairImage = dp.pairImage
         iteration = dp.iterations
+        sample = dp.sample
         imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
         metricMethod = MetricFactory.create(dp.metric)
         thresholdMethod = ThresholdFactory.create(dp.thresholding)
         searchMethod = SearchFactory.create(dp.search)
         denoiserMethod = DenoiserFactory.create(dp.denoiser)
-        denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), imageLoaderMethod, metricMethod, thresholdMethod, searchMethod, iteration, denoiserMethod)
+        denoiserParams = DenoiserRunParams((pairImage[0], pairImage[1]), imageLoaderMethod, metricMethod, thresholdMethod, searchMethod, iteration, denoiserMethod, sample)
         try:
             start = time.perf_counter_ns()
             run = denoiserMethod.run(denoiserParams, dp)
@@ -70,6 +71,8 @@ class Run:
             for denoiserConfig in p.denoisers:
                 denoiserConfigs.extend(DenoiserFactory.unpack_config(denoiserConfig))
             
+            # Temporary ternary conditional below, samples should be mandatory
+            samples = p.samples if hasattr(p, 'samples') else ParameterSpace().samples
             for denoiserConfig in denoiserConfigs:
                 for imageLoader in p.imageLoaders:
                     for img in p.images:
@@ -80,8 +83,9 @@ class Run:
                                 for threshold in p.thresholds:
                                     for searchMethodName in p.searchMethods:
                                         for iteration in p.iterations:
-                                            denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig)
-                                            denParams.append(denoiserParamsString)
+                                            for sample in range(samples):
+                                                denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig, sample)
+                                                denParams.append(denoiserParamsString)
         return denParams
     
     def run(self):
