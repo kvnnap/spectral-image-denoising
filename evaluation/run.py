@@ -26,7 +26,7 @@ class Progress:
         self.callback(current, total, result)
 
 class Run:
-    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d,r: None):
+    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d,r: None, imageBase = ''):
         self.parameterSpace = parameterSpace
         self.progress = Progress(monitoringFn)
         self.cores = max(1, cores)
@@ -34,9 +34,11 @@ class Run:
         self.totalRuns = 0
         self.runs = []
         self.version = get_version().to_dict()
+        self.imageBase = imageBase
 
     @staticmethod
-    def _task(dp):
+    def _task(dp, imageBase):
+        set_base_path(imageBase)
         pairImage = dp.pairImage
         iteration = dp.iterations
         sample = dp.sample
@@ -94,13 +96,13 @@ class Run:
         # distribute tasks using multiprocessing
         if (self.cores == 1):
             for denoiserParams in denParams:
-                rResult = Run._task(denoiserParams)
+                rResult = Run._task(denoiserParams, self.imageBase)
                 self.runs.append(rResult)
                 self._update(rResult)
         else:
             asyncResults = []
             with mp.Pool(processes=min(self.cores, len(denParams)), maxtasksperchild=1) as pool:
-                asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp,), callback=self._update), denParams))
+                asyncResults = list(map(lambda dp: pool.apply_async(Run._task, (dp, self.imageBase), callback=self._update), denParams))
                 pool.close()
                 pool.join()
             for asyncResult in asyncResults:
@@ -122,7 +124,6 @@ def main():
     resultPath = args.result
     tempPath = args.temp
     cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
-    set_base_path(args.image_base)
     print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
     print(versionString)
 
@@ -132,7 +133,7 @@ def main():
         save(tempPath, result, write_mode='a')
         bar.total = d
         bar.update(1)
-    run = Run(parameterSpace, cores, update)
+    run = Run(parameterSpace, cores, update, args.image_base)
     run.run()
     bar.close()
 
