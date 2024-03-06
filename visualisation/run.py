@@ -21,7 +21,7 @@ class ResultViewer(tk.Tk):
 
         # process data to rows/cols
         self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff', 'sample']
-        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score']) }
+        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample']) }
         row = []
         scoreIndex = self.header.index('score')
         for run in runData.runs:
