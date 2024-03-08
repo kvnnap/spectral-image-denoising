@@ -47,7 +47,7 @@ def minimize_wrapper(method_name, fn, space, n_calls):
     results = []
     def callback(intermediate_result):
         if isinstance(intermediate_result, spo.OptimizeResult):
-            results.append((intermediate_result.x.tolist(), intermediate_result.fun))
+            results.append((intermediate_result.x.tolist(), np.float64(intermediate_result.fun).item()))
         else:
             results.append((intermediate_result.tolist(), fn(intermediate_result.tolist())))
     # Info on default method selection
@@ -68,7 +68,10 @@ def minimize_wrapper(method_name, fn, space, n_calls):
     if method_name is not None:
         kwargs['method'] = method_name
     r = spo.minimize(fn, x0, **kwargs)
-    return Result(r.x.tolist(), [x for (x, _) in results], r.fun, [y for (_, y) in results])
+    # Add last item if this algorithm does not call callback for last item
+    if len(results) < r.nit:
+        callback(r)
+    return Result(r.x.tolist(), [x for (x, _) in results], np.float64(r.fun).item(), [y for (_, y) in results])
 
 # Method returned expects (fn, space, n_calls)
 class SearchFactory:
