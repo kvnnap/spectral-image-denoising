@@ -20,16 +20,20 @@ class ResultViewer(tk.Tk):
         tk.Tk.__init__(self)
 
         # process data to rows/cols
-        self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff', 'sample']
-        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample']) }
+        self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time']
+        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample', 'iter', 'time']) }
         row = []
         scoreIndex = self.header.index('score')
+        iterIndex = self.header.index('iter')
+        timeIndex = self.header.index('time')
         for run in runData.runs:
             dp = run.denoiserParams
             for key in self.filterDict:
                 self.filterDict[key].update({ dp.get_value(key) })
             rowItem = [dp.get_value(val) for val in self.header]
             rowItem[scoreIndex] = run.denoiserResult.fun
+            rowItem[iterIndex] = len(run.denoiserResult.func_vals)
+            rowItem[timeIndex] = round(run.time * 1e-9)
             row.append(rowItem)
         
         # Only filter categories with more than 1 item

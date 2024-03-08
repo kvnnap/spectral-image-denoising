@@ -46,7 +46,10 @@ def minimize_wrapper(method_name, fn, space, n_calls):
     x0 = [np.mean(b) for b in bounds]
     results = []
     def callback(intermediate_result):
-        results.append((intermediate_result.x.tolist(), intermediate_result.fun))
+        if isinstance(intermediate_result, spo.OptimizeResult):
+            results.append((intermediate_result.x.tolist(), intermediate_result.fun))
+        else:
+            results.append((intermediate_result.tolist(), fn(intermediate_result.tolist())))
     # Info on default method selection
     # if method is None:
     #     # Select automatically
@@ -58,9 +61,10 @@ def minimize_wrapper(method_name, fn, space, n_calls):
     #         method = 'BFGS'
     kwargs = {
         'bounds': bounds,
-        'callback': callback,
-        'options': { 'maxiter': n_calls }
+        'callback': callback
     }
+    if n_calls > 0:
+        kwargs['options'] = { 'maxfun': n_calls } if method_name == 'tnc' else { 'maxiter': n_calls }
     if method_name is not None:
         kwargs['method'] = method_name
     r = spo.minimize(fn, x0, **kwargs)
@@ -79,6 +83,7 @@ class SearchFactory:
             return gp_minimize_wrapper
         elif (name == "minimize"):
             method_name = search_config['method'] if 'method' in search_config else None
+            method_name = method_name.strip().lower()
             return partial(minimize_wrapper, method_name)
         else:
             raise ValueError(f"Invalid search name {search_config['name']}")

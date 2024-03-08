@@ -3,21 +3,14 @@ import copy
 
 def unpack_config(obj):
     obj = copy.deepcopy(obj)
-    objConfig = {}
-
-    if ('name' in obj):
-        objConfig = obj
-    else:
-        objConfig['name'] = obj
+    objConfig = obj if 'name' in obj else { 'name': obj }
 
     name = objConfig.pop('name').strip().lower()
     
     keys = objConfig.keys()
     values = objConfig.values()
     combinations = list(itertools.product(*values))
-    configs = [{key: value for key, value in zip(keys, combination)} for combination in combinations]
-    for config in configs:
-        config['name'] = name
+    configs = [{ 'name': name, **{ key: value for key, value in zip(keys, combination) } } for combination in combinations]
     return configs
 
 def unpack_list_config(configs):

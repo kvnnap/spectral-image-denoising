@@ -16,7 +16,7 @@ class DenoiserRunParamsString:
     
     @staticmethod
     def obj_config_to_str(objConfig):
-        return '/'.join([str(x) for x in objConfig.values()] if 'name' in objConfig else [objConfig])
+        return '/'.join([ objConfig['name'],  *[str(v) for k, v in objConfig.items() if k != 'name']] if 'name' in objConfig else [objConfig])
 
     def get_value(self, key):
         if key == 'ref-noisy':
