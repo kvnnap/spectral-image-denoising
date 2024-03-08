@@ -3,6 +3,7 @@ import numpy as np
 import math
 from skopt import gp_minimize
 import copy
+import scipy.optimize as spo
 
 from core.search import Result
 
@@ -40,6 +41,15 @@ def gp_minimize_wrapper(fn, space, n_calls):
     r = gp_minimize(fn, space, n_calls=n_calls)
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
+def minimize_wrapper(fn, space, n_calls):
+    bounds = [(s.low, s.high) for s in space]
+    x0 = [np.mean(b) for b in bounds]
+    results = []
+    def callback(intermediate_result):
+        results.append((intermediate_result.x.tolist(), intermediate_result.fun))
+    r = spo.minimize(fn, x0, bounds=bounds, callback=callback, options={'maxiter': n_calls})
+    return Result(r.x.tolist(), [x for (x, _) in results], r.fun, [y for (_, y) in results])
+
 # Method returned expects (fn, space, n_calls)
 class SearchFactory:
     @staticmethod
@@ -51,5 +61,7 @@ class SearchFactory:
             return partial(naive, True)
         elif (name == "gp_minimize"):
             return gp_minimize_wrapper
+        elif (name == "minimize"):
+            return minimize_wrapper
         else:
             raise ValueError(f"Invalid search name {search_name}")
