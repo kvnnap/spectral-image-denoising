@@ -14,13 +14,19 @@ class DenoiserRunParamsString:
         self.denoiser = denoiser
         self.sample = sample
     
+    @staticmethod
+    def obj_config_to_str(objConfig):
+        return '/'.join([str(x) for x in objConfig.values()] if 'name' in objConfig else [objConfig])
+
     def get_value(self, key):
         if key == 'ref-noisy':
             return f"{extract_file_name(self.pairImage[0])}-{extract_file_name(self.pairImage[1])}"
         elif key == 'denoiser':
             return self.denoiser['name'] if 'name' in self.denoiser else self.denoiser
         elif key == 'denoiser_coeff':
-            return '/'.join([str(x) for x in self.denoiser.values()] if 'name' in self.denoiser else [self.denoiser])
+            return DenoiserRunParamsString.obj_config_to_str(self.denoiser)
+        elif key == 'search':
+            return DenoiserRunParamsString.obj_config_to_str(self.search)
         elif key in self.__dict__:
             return self.__dict__[key]
         else:

@@ -18,6 +18,7 @@ from evaluation.image_loader import ImageLoaderFactory
 from utils.versioning import get_version
 from utils.serialisation import save, load, print_obj
 from utils.image import set_base_path
+from utils.factory import unpack_list_config
 
 class Progress:
     def __init__(self, fn):
@@ -69,9 +70,8 @@ class Run:
 
         for p in parameter_space:
             # Generate list of all possible denoiser configurations
-            denoiserConfigs = []
-            for denoiserConfig in p.denoisers:
-                denoiserConfigs.extend(DenoiserFactory.unpack_config(denoiserConfig))
+            denoiserConfigs = unpack_list_config(p.denoisers)
+            searchConfigs = unpack_list_config(p.searchMethods)
             
             # Temporary ternary conditional below, samples should be mandatory
             samples = p.samples if hasattr(p, 'samples') else ParameterSpace().samples
@@ -83,10 +83,10 @@ class Run:
                         for image in images:
                             for metric in p.metrics:
                                 for threshold in p.thresholds:
-                                    for searchMethodName in p.searchMethods:
+                                    for searchConfig in searchConfigs:
                                         for iteration in p.iterations:
                                             for sample in range(samples):
-                                                denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchMethodName, iteration, denoiserConfig, sample)
+                                                denoiserParamsString = DenoiserRunParamsString(len(denParams), p.name, (refImage, image), imageLoader, metric, threshold, searchConfig, iteration, denoiserConfig, sample)
                                                 denParams.append(denoiserParamsString)
         return denParams
     

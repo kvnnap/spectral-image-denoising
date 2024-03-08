@@ -41,20 +41,36 @@ def gp_minimize_wrapper(fn, space, n_calls):
     r = gp_minimize(fn, space, n_calls=n_calls)
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
-def minimize_wrapper(fn, space, n_calls):
+def minimize_wrapper(method_name, fn, space, n_calls):
     bounds = [(s.low, s.high) for s in space]
     x0 = [np.mean(b) for b in bounds]
     results = []
     def callback(intermediate_result):
         results.append((intermediate_result.x.tolist(), intermediate_result.fun))
-    r = spo.minimize(fn, x0, bounds=bounds, callback=callback, options={'maxiter': n_calls})
+    # Info on default method selection
+    # if method is None:
+    #     # Select automatically
+    #     if constraints:
+    #         method = 'SLSQP'
+    #     elif bounds is not None:
+    #         method = 'L-BFGS-B'
+    #     else:
+    #         method = 'BFGS'
+    kwargs = {
+        'bounds': bounds,
+        'callback': callback,
+        'options': { 'maxiter': n_calls }
+    }
+    if method_name is not None:
+        kwargs['method'] = method_name
+    r = spo.minimize(fn, x0, **kwargs)
     return Result(r.x.tolist(), [x for (x, _) in results], r.fun, [y for (_, y) in results])
 
 # Method returned expects (fn, space, n_calls)
 class SearchFactory:
     @staticmethod
-    def create(search_name):
-        name = search_name.strip().lower()
+    def create(search_config):
+        name = search_config['name'].strip().lower()
         if (name == "naive"):
             return partial(naive, False)
         elif (name == "naive_descending"):
@@ -62,6 +78,7 @@ class SearchFactory:
         elif (name == "gp_minimize"):
             return gp_minimize_wrapper
         elif (name == "minimize"):
-            return minimize_wrapper
+            method_name = search_config['method'] if 'method' in search_config else None
+            return partial(minimize_wrapper, method_name)
         else:
-            raise ValueError(f"Invalid search name {search_name}")
+            raise ValueError(f"Invalid search name {search_config['name']}")

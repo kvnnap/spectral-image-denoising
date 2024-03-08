@@ -11,6 +11,7 @@ options:
   -h, --help       show this help message and exit
   --config CONFIG  File path to the JSON ParameterSpace list (default=config.json)
   --result RESULT  Where to save the JSON Run object (default=result.json)
+  --image-base PTH Where to load images from (default='')
   --temp TEMP      Where to save intermediate JSON Run objects (default=temp.json)
   --cores CORES    Number of cores to use. 0 uses maximum (default=0)
 ```
@@ -20,11 +21,16 @@ The below JSON configuration outlines all possible values for a group of runs.
 
 For wavelet families and possible variations see https://pywavelets.readthedocs.io/en/latest/regression/wavelet.html
 
+For searchMethods look at https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+The options we're giving below are for bounded variables (which is what we're using)
+"L-BFGS-B" is the default method
+
 ```json
 [
     {
         "py/object": "core.run.ParameterSpace",
         "name": "group_run_name",
+        "samples": 1,
         "images": [
             {
                 "py/tuple": [
@@ -57,7 +63,13 @@ For wavelet families and possible variations see https://pywavelets.readthedocs.
         "searchMethods": [
             "naive",
             "naive_descending",
-            "gp_minimize"
+            "gp_minimize",
+            {
+                "name": "minimize",
+                "method": [ // L-BFGS-B is default if not method is given
+                    "Nelder-Mead", "L-BFGS-B", "TNC", "SLSQP", "Powell", "trust-constr", "COBYLA"
+                ]
+            }
         ],
         "iterations": [
             100
