@@ -90,8 +90,8 @@ class Run:
                                                 denParams.append(denoiserParamsString)
         return denParams
     
-    def run(self):
-        denParams = Run.get_denoiser_params(self.parameterSpace)
+    def run(self, dp = None):
+        denParams = Run.get_denoiser_params(self.parameterSpace) if dp is None else dp
         self.totalRuns = len(denParams)
         # distribute tasks using multiprocessing
         if (self.cores == 1):
@@ -112,35 +112,50 @@ class Run:
 
 def main():
     versionString = get_version().to_string()
+    print(versionString)
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace list')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
     parser.add_argument('--image-base', default='', help='Base path for the images to load')
     parser.add_argument('--temp', default='temp.json', help='Where to save intermediate JSON Run objects')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
+    parser.add_argument('--missing-only', default=False, action='store_true', help='Used to run only the missing runs found in the results')
     args = parser.parse_args()
 
     configPath = args.config
     resultPath = args.result
     tempPath = args.temp
     cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
-    print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
-    print(versionString)
 
-    parameterSpace = load(configPath)
     bar = tqdm.tqdm()
     def update(n, d, result):
         save(tempPath, result, write_mode='a')
         bar.total = d
         bar.update(1)
-    run = Run(parameterSpace, cores, update, args.image_base)
-    run.run()
+
+    if args.missing_only:
+        print(f'Computing only missing runs. Saving all results back to \'{resultPath}\'. Max cores: {cores}')
+        runData = load(resultPath)
+        dp = Run.get_denoiser_params(runData.parameterSpace)
+        missing_ids = {p.id for p in dp} - {r.denoiserParams.id for r in runData.runs}
+        missing_runs = [dp[m] for m in missing_ids]
+        if missing_runs:
+            run = Run(runData.parameterSpace, cores, update, args.image_base)
+            run.run(missing_runs)
+            runData.runs.extend(run.runs)
+            sorted(runData.runs, key=lambda r: r.denoiserParams.id)
+            save(resultPath, runData)
+    else:
+        print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
+        parameterSpace = load(configPath)
+        run = Run(parameterSpace, cores, update, args.image_base)
+        run.run()
+        runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
+        save(resultPath, runData)
+        #save(f'{resultPath}.norefs.json', runData, False)
+    
     bar.close()
 
-    runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
-
-    save(resultPath, runData)
-    #save(f'{resultPath}.norefs.json', runData, False)
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
