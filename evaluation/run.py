@@ -145,7 +145,7 @@ def main():
             run = Run(runData.parameterSpace, cores, update, args.image_base, args.force_parallel)
             run.run(missing_runs)
             runData.runs.extend(run.runs)
-            sorted(runData.runs, key=lambda r: r.denoiserParams.id)
+            runData.runs = sorted(runData.runs, key=lambda r: r.denoiserParams.id)
             save(resultPath, runData)
     else:
         print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
