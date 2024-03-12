@@ -27,7 +27,7 @@ class Progress:
         self.callback(current, total, result)
 
 class Run:
-    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d,r: None, imageBase = ''):
+    def __init__(self, parameterSpace, cores = 1, monitoringFn=lambda n,d,r: None, imageBase = '', forceParallel = False):
         self.parameterSpace = parameterSpace
         self.progress = Progress(monitoringFn)
         self.cores = max(1, cores)
@@ -36,6 +36,7 @@ class Run:
         self.runs = []
         self.version = get_version().to_dict()
         self.imageBase = imageBase
+        self.forceParallel = forceParallel
 
     @staticmethod
     def _task(dp, imageBase):
@@ -94,7 +95,7 @@ class Run:
         denParams = Run.get_denoiser_params(self.parameterSpace) if dp is None else dp
         self.totalRuns = len(denParams)
         # distribute tasks using multiprocessing
-        if (self.cores == 1):
+        if self.forceParallel == False and self.cores == 1:
             for denoiserParams in denParams:
                 rResult = Run._task(denoiserParams, self.imageBase)
                 self.runs.append(rResult)
@@ -120,6 +121,7 @@ def main():
     parser.add_argument('--temp', default='temp.json', help='Where to save intermediate JSON Run objects')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
     parser.add_argument('--missing-only', default=False, action='store_true', help='Used to run only the missing runs found in the results')
+    parser.add_argument('--force-parallel', default=False, action='store_true', help='Force using python multiprocessing when 1 core is selected')
     args = parser.parse_args()
 
     configPath = args.config
@@ -140,7 +142,7 @@ def main():
         missing_ids = {p.id for p in dp} - {r.denoiserParams.id for r in runData.runs}
         missing_runs = [dp[m] for m in missing_ids]
         if missing_runs:
-            run = Run(runData.parameterSpace, cores, update, args.image_base)
+            run = Run(runData.parameterSpace, cores, update, args.image_base, args.force_parallel)
             run.run(missing_runs)
             runData.runs.extend(run.runs)
             sorted(runData.runs, key=lambda r: r.denoiserParams.id)
@@ -148,7 +150,7 @@ def main():
     else:
         print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
         parameterSpace = load(configPath)
-        run = Run(parameterSpace, cores, update, args.image_base)
+        run = Run(parameterSpace, cores, update, args.image_base, args.force_parallel)
         run.run()
         runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
         save(resultPath, runData)
