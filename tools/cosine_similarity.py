@@ -1,7 +1,6 @@
 import sys
 import os
 import argparse
-import numpy as np
 from numpy import dot
 from numpy.linalg import norm
 
@@ -9,7 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
 from utils.serialisation import save, load
-from visualisation.result_image_processor import ResultImageProcessor
 from utils.serialisation import to_string_obj
 
 def get_run_from__row_id(runData, runId):
@@ -23,7 +21,6 @@ def show_details(runData, runId, similarity = 1.0):
 
     # Find run by id
     run = get_run_from__row_id(runData, runId)
-    # scores = ResultImageProcessor(run).compute_score()
     print(f'{similarity} -- {to_string_obj(run.denoiserParams)}')
     
 

@@ -2,17 +2,19 @@ import tkinter as tk
 from tkinter import filedialog
 from visualisation.result_image_processor import ResultImageProcessor
 from visualisation.result_plot import ResultPlot
-from utils.image import tone_alpha_map
 from utils.image import save_image
 from utils.image import interpolate_image_to_range
-from evaluation.metric import local_mse, local_ssim, local_psnr
-
-import numpy as np
 
 # parent is the tk sheet
 class RunViewer():
     def __init__(self, parent, run):
         dp = run.denoiserParams
+        
+        self.imgLoaderStr = dp.imageLoader
+        toneMapped = self.imgLoaderStr.endswith('_tm')
+        if toneMapped:
+            self.imgLoaderStr = self.imgLoaderStr[:-3]
+
         self.id = dp.id
         self.run = run
         self.resImageProc = ResultImageProcessor(run) #run.denoiserResult.func_vals
@@ -29,7 +31,7 @@ class RunViewer():
 
         self.resultPlot = ResultPlot(self)
 
-        self.toneMap = tk.IntVar()
+        self.toneMap = tk.IntVar(value=toneMapped)
         self.toneMapCheckbox = tk.Checkbutton(self.subWindow, text='Tone Map', variable=self.toneMap, command=self.tone_map)
         self.toneMapCheckbox.pack()
 
@@ -68,9 +70,6 @@ class RunViewer():
     def plot(self):
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
-        if (self.toneMap.get()):
-            image = tone_alpha_map(image)
-            denImage = tone_alpha_map(denImage)
         if (self.backImage is not None):
             image = self.backImage + image
             denImage = self.backImage + denImage
@@ -96,6 +95,10 @@ class RunViewer():
         self.parentResultViewer.toggle_loading()
 
     def tone_map(self):
+        imgLoaderStr = self.imgLoaderStr 
+        if self.toneMap.get():
+            imgLoaderStr = imgLoaderStr + '_tm'
+        self.resImageProc.update_image_loader(imgLoaderStr)
         self.plot()
 
     def show_coeffs(self):
@@ -127,11 +130,6 @@ class RunViewer():
     def save_images(self):
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
-        # Apply tone mapping if needed
-        if (self.toneMap.get()):
-            image = tone_alpha_map(image)
-            denImage = tone_alpha_map(denImage)
-        
         dp = self.run.denoiserParams
         #full_name = f'{dp.name}-{dp.id}-{dp.denoiser["name"]}_{dp.denoiser["coefficientLength"]}-{dp.search}-{dp.thresholding}-{dp.imageLoader}-{dp.metric}-{dp.iterations}'
         name = f'{dp.name}-{dp.id}'

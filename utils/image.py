@@ -132,9 +132,6 @@ def alpha_correction_chain(data):
     correction_data = np.where(correction_data <= 0.0031308, 12.92*correction_data, 1.055*np.power(correction_data, encoding_gamma) - 0.055)
     return correction_data
 
-def tone_alpha_map(image):
-    return alpha_correction_chain(tone_map(image)) if image is not None else None
-
 def float_image_to_uint(data):
     # Clip the pixel values to the range [0, 255] and convert to unsigned 8-bit integers
     return np.clip(255 * data, 0, 255).astype(np.uint8)

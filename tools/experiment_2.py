@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
-from utils.serialisation import save, load
+from utils.serialisation import load
 from utils.image import set_base_path
-from evaluation.image_loader import ImageLoaderFactory
 from visualisation.result_image_processor import ResultImageProcessor
 
 def get_run_from__run_id(runData, runId):
@@ -22,7 +21,7 @@ def get_score(resImageProc, ref, noisy):
 
 def main():
     versionString = get_version().to_string()
-    parser = argparse.ArgumentParser(description=f'Fix MSE score.\n{versionString}')
+    parser = argparse.ArgumentParser(description=f'Try varying transformations on input image.\n{versionString}')
     parser.add_argument('--result', default='results/paper_exp_1_gray-result_clip.json', help='Result file to load')
     parser.add_argument('--image-base', default='images/exp_1', help='Base path for the images to load')
     parser.add_argument('--run-id', default=0, type=int, help='The run id to run tests on')

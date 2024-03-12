@@ -4,18 +4,19 @@ from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import MetricFactory
 from evaluation.thresholds import ThresholdFactory
 from evaluation.metric import *
+import copy
 
 class ResultImageProcessor():
     def __init__(self, run):
         dp = run.denoiserParams
-        self.denoiserParams = run.denoiserParams
+        self.denoiserParams = copy.deepcopy(run.denoiserParams)
         self.run = run
         self.imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
         self.thresholdMethod = ThresholdFactory.create(dp.thresholding)
         self.denoiserMethod = DenoiserFactory.create(dp.denoiser)
         self.metricMethod = MetricFactory.create(dp.metric)
-        self.refImage = self.imageLoaderMethod(dp.pairImage[0])
-        self.image = self.imageLoaderMethod(dp.pairImage[1])
+        self.update_ref_image_path(dp.pairImage[0])
+        self.update_image_path(dp.pairImage[1])
     
     @lru_cache
     def get(self, renderCoeffImage = True, coeffId = None):
@@ -35,11 +36,19 @@ class ResultImageProcessor():
             'hdrvdp3': (local_hdrvdp3(self.refImage, self.image, self.denoiserParams), local_hdrvdp3(self.refImage, reconstructedImage, self.denoiserParams))
         }
         return ret_obj
-    
+
+    def update_image_loader(self, imageLoader):
+        self.denoiserParams.imageLoader = imageLoader
+        self.imageLoaderMethod = ImageLoaderFactory.create(imageLoader)
+        self.update_image_path(self.imagePath)
+        self.update_ref_image_path(self.refImagePath)
+
     def update_image_path(self, path):
+        self.imagePath = path
         self.update_image(self.imageLoaderMethod(path))
 
     def update_ref_image_path(self, path):
+        self.refImagePath = path
         self.update_ref_image(self.imageLoaderMethod(path))
 
     def update_image(self, image):
