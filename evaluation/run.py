@@ -34,6 +34,7 @@ class Run:
         self.cores = max(1, cores)
         self.runsCompleted = 0
         self.totalRuns = 0
+        self.splitRuns = 0
         self.runs = []
         self.version = get_version().to_dict()
         self.imageBase = imageBase
@@ -64,7 +65,7 @@ class Run:
 
     def _update(self, result):
         self.runsCompleted += 1
-        self.progress.update(self.runsCompleted, self.totalRuns, result)
+        self.progress.update(self.runsCompleted, self.splitRuns, result)
 
     @staticmethod
     def get_denoiser_params(parameter_space):
@@ -98,6 +99,7 @@ class Run:
         
         # Run only a small partition
         denParams = split_partition_array(denParams, *split)
+        self.splitRuns = len(denParams)
 
         # distribute tasks using multiprocessing
         if self.forceParallel == False and self.cores == 1:
