@@ -19,6 +19,7 @@ from utils.versioning import get_version
 from utils.serialisation import save, load, print_obj
 from utils.image import set_base_path
 from utils.factory import unpack_list_config
+from utils.array import split_partition_array
 
 class Progress:
     def __init__(self, fn):
@@ -91,9 +92,13 @@ class Run:
                                                 denParams.append(denoiserParamsString)
         return denParams
     
-    def run(self, dp = None):
+    def run(self, split, dp = None):
         denParams = Run.get_denoiser_params(self.parameterSpace) if dp is None else dp
         self.totalRuns = len(denParams)
+        
+        # Run only a small partition
+        denParams = split_partition_array(denParams, *split)
+
         # distribute tasks using multiprocessing
         if self.forceParallel == False and self.cores == 1:
             for denoiserParams in denParams:
@@ -122,12 +127,16 @@ def main():
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
     parser.add_argument('--missing-only', default=False, action='store_true', help='Used to run only the missing runs found in the results')
     parser.add_argument('--force-parallel', default=False, action='store_true', help='Force using python multiprocessing when 1 core is selected')
+    parser.add_argument('--missing-result', default='', help='Where to save the JSON Run object for missing-only option.')
+    parser.add_argument('--split', default='1,0,1', help='Splits the workload. Enter a string having format total,start,length')
     args = parser.parse_args()
 
     configPath = args.config
     resultPath = args.result
+    missingResultPath = args.missing_result if args.missing_result else resultPath
     tempPath = args.temp
     cores = args.cores if args.cores > 0 and args.cores <= mp.cpu_count() else mp.cpu_count()
+    split = tuple(map(int, args.split.split(',')))
 
     bar = tqdm.tqdm()
     def update(n, d, result):
@@ -136,22 +145,22 @@ def main():
         bar.update(1)
 
     if args.missing_only:
-        print(f'Computing only missing runs. Saving all results back to \'{resultPath}\'. Max cores: {cores}')
+        print(f'Computing only missing runs from \'{resultPath}\'. Saving all results back to \'{missingResultPath}\'. Max cores: {cores}')
         runData = load(resultPath)
         dp = Run.get_denoiser_params(runData.parameterSpace)
-        missing_ids = {p.id for p in dp} - {r.denoiserParams.id for r in runData.runs}
+        missing_ids = sorted({p.id for p in dp} - {r.denoiserParams.id for r in runData.runs})
         missing_runs = [dp[m] for m in missing_ids]
         if missing_runs:
             run = Run(runData.parameterSpace, cores, update, args.image_base, args.force_parallel)
-            run.run(missing_runs)
+            run.run(split, missing_runs)
             runData.runs.extend(run.runs)
             runData.runs = sorted(runData.runs, key=lambda r: r.denoiserParams.id)
-            save(resultPath, runData)
+            save(missingResultPath, runData)
     else:
         print(f'Reading ParameterSpace from \'{configPath}\' and writing result to \'{resultPath}\'. Max cores: {cores}')
         parameterSpace = load(configPath)
         run = Run(parameterSpace, cores, update, args.image_base, args.force_parallel)
-        run.run()
+        run.run(split)
         runData = RunData(run.parameterSpace, run.cores, run.totalRuns, run.runs, run.version)
         save(resultPath, runData)
         #save(f'{resultPath}.norefs.json', runData, False)
