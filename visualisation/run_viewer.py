@@ -3,7 +3,7 @@ from tkinter import filedialog
 from visualisation.result_image_processor import ResultImageProcessor
 from visualisation.result_plot import ResultPlot
 from utils.image import save_image
-from utils.image import interpolate_image_to_range
+from utils.image import interpolate_image_to_range, tone_alpha_map
 
 # parent is the tk sheet
 class RunViewer():
@@ -35,6 +35,11 @@ class RunViewer():
         self.toneMapCheckbox = tk.Checkbutton(self.subWindow, text='Tone Map', variable=self.toneMap, command=self.tone_map)
         self.toneMapCheckbox.pack()
 
+        # PP means post proc
+        self.toneMapPP = tk.IntVar()
+        self.toneMapPPCheckbox = tk.Checkbutton(self.subWindow, text='Tone Map PP', variable=self.toneMapPP, command=self.tone_map_pp)
+        self.toneMapPPCheckbox.pack()
+
         self.showCoeff = tk.IntVar()
         self.showCoeffButton = tk.Checkbutton(self.subWindow, text='Show Coefficients', variable=self.showCoeff, command=self.show_coeffs)
         self.showCoeffButton.pack()
@@ -63,13 +68,16 @@ class RunViewer():
         self.hdrvdpLabel = tk.Label(self.subWindow, text='HDRVDP3: 0')
         self.hdrvdpLabel.pack()
 
-        self.uiCollection = [self.toneMapCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
+        self.uiCollection = [self.toneMapCheckbox, self.toneMapPPCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
         self.plot()
 
     def plot(self):
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
+        if self.toneMapPP.get():
+            image = tone_alpha_map(image)
+            denImage = tone_alpha_map(denImage)
         if (self.backImage is not None):
             image = self.backImage + image
             denImage = self.backImage + denImage
@@ -101,6 +109,9 @@ class RunViewer():
         self.resImageProc.update_image_loader(imgLoaderStr)
         self.plot()
 
+    def tone_map_pp(self):
+        self.plot()
+
     def show_coeffs(self):
         self.plot()
 
@@ -130,6 +141,10 @@ class RunViewer():
     def save_images(self):
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
+        # Post proc tone mapping
+        if self.toneMapPP.get():
+            image = tone_alpha_map(image)
+            denImage = tone_alpha_map(denImage)
         dp = self.run.denoiserParams
         #full_name = f'{dp.name}-{dp.id}-{dp.denoiser["name"]}_{dp.denoiser["coefficientLength"]}-{dp.search}-{dp.thresholding}-{dp.imageLoader}-{dp.metric}-{dp.iterations}'
         name = f'{dp.name}-{dp.id}'
