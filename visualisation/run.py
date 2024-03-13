@@ -20,12 +20,13 @@ class ResultViewer(tk.Tk):
         tk.Tk.__init__(self)
 
         # process data to rows/cols
-        self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time']
-        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample', 'iter', 'time']) }
+        self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time', 'message']
+        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample', 'iter', 'time', 'message']) }
         row = []
         scoreIndex = self.header.index('score')
         iterIndex = self.header.index('iter')
         timeIndex = self.header.index('time')
+        messageIndex = self.header.index('message')
         for run in runData.runs:
             dp = run.denoiserParams
             for key in self.filterDict:
@@ -34,6 +35,7 @@ class ResultViewer(tk.Tk):
             rowItem[scoreIndex] = run.denoiserResult.fun
             rowItem[iterIndex] = len(run.denoiserResult.func_vals)
             rowItem[timeIndex] = round(run.time * 1e-9)
+            rowItem[messageIndex] = run.denoiserResult.message if hasattr(run.denoiserResult, 'message') else ''
             row.append(rowItem)
         
         # Only filter categories with more than 1 item
