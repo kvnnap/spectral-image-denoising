@@ -27,7 +27,7 @@ def main():
     
     if mergeSplitRuns:
         for rPath in resultPath[1:]:
-            runData.runs.extend(load(rPath))
+            runData.runs.extend(load(rPath).runs)
     else:
         # Temporary solution, merge results in one view
         # IMPORTANT: NOT ALL INFO FROM BOTH RUNS IS PRESERVED
