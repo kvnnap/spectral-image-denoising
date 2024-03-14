@@ -12,28 +12,36 @@ def main():
     parser = argparse.ArgumentParser(description=f'Merges run data from multiple files.\n{versionString}')
     parser.add_argument('--result', action='append', help='Multiple results to load. Add more json with seperate --result flags')
     parser.add_argument('--merged-result', default='merged.json', help='File path to merged result')
+    parser.add_argument('--merge-split-runs', default=False, action='store_true', help='Merge split runs (just appends runs without touching any other props)')
     args = parser.parse_args()
 
     resultPath = args.result
     mergedResultPath = args.merged_result
+    mergeSplitRuns = args.merge_split_runs
+
     if not resultPath:
         print('No input')
         return
 
     runData = load(resultPath[0])
-    # Temporary solution, merge results in one view
-    # IMPORTANT: NOT ALL INFO FROM BOTH RUNS IS PRESERVED
-    # RUN IDS are changed to avoid duplicates in views
-    for rPath in resultPath[1:]:
-        otherRunData = load(rPath)
-        runData.parameterSpace.extend(otherRunData.parameterSpace)
-        for otherRunDatum in otherRunData.runs:
-            otherRunDatum.denoiserParams.id += runData.totalRuns
-            runData.runs.append(otherRunDatum)
-        runData.totalRuns += otherRunData.totalRuns
+    
+    if mergeSplitRuns:
+        for rPath in resultPath[1:]:
+            runData.runs.extend(load(rPath))
+    else:
+        # Temporary solution, merge results in one view
+        # IMPORTANT: NOT ALL INFO FROM BOTH RUNS IS PRESERVED
+        # RUN IDS are changed to avoid duplicates in views
+        for rPath in resultPath[1:]:
+            otherRunData = load(rPath)
+            runData.parameterSpace.extend(otherRunData.parameterSpace)
+            for otherRunDatum in otherRunData.runs:
+                otherRunDatum.denoiserParams.id += runData.totalRuns
+                runData.runs.append(otherRunDatum)
+            runData.totalRuns += otherRunData.totalRuns
 
-    runData.version = get_version().to_dict()
-    runData.cores = -1
+        runData.version = get_version().to_dict()
+        runData.cores = -1
     
     save(mergedResultPath, runData)
 
