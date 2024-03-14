@@ -43,6 +43,7 @@ def main():
         runData.version = get_version().to_dict()
         runData.cores = -1
     
+    runData.runs = sorted(runData.runs, key=lambda r: r.denoiserParams.id)
     save(mergedResultPath, runData)
 
     print(f'Merged {len(runData.runs)} results')
