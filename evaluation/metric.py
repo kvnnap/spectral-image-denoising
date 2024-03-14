@@ -61,6 +61,8 @@ def local_hdrvdp3(ref, noisy, dpString):
     s = selector[imgLoader]
     noisy = np.ascontiguousarray(noisy)
     ref = np.ascontiguousarray(ref)
+    noisy = matlab.single(noisy) if noisy.dtype == np.float32 else matlab.double(noisy)
+    ref = matlab.single(ref) if ref.dtype == np.float32 else matlab.double(ref)
     result = h.hdrvdp3('side-by-side', noisy, ref, s, ppd, ['quiet', True])
     return -result['Q']
 

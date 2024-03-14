@@ -86,8 +86,7 @@ class SearchFactory:
         elif (name == "gp_minimize"):
             return gp_minimize_wrapper
         elif (name == "minimize"):
-            method_name = search_config['method'] if 'method' in search_config else None
-            method_name = method_name.strip().lower()
+            method_name = search_config['method'].strip().lower() if 'method' in search_config else None
             return partial(minimize_wrapper, method_name)
         else:
             raise ValueError(f"Invalid search name {search_config['name']}")

@@ -6,24 +6,24 @@
         "images": [
             {
                 "py/tuple": [
-                    "images/dice_caustics/output_0.raw",
+                    "povray_dice_caustics_8.exr",
                     [
-                        "images/dice_caustics/output_1.raw"
+                        "povray_dice_caustics_2.exr"
                     ]
                 ]
             }
         ],
         "imageLoaders":[
-            "rgb_tm"
+            "gray"
         ],
         "metrics": [
-            "ssim"
+            "hdrvdp3"
         ],
         "thresholds": [
             "garrote"
         ],
         "searchMethods": [
-            "gp_minimize"
+            "minimize"
         ],
         "iterations": [
             10
