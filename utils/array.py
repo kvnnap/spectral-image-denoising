@@ -13,3 +13,13 @@ def partition_array(count, den, start, length):
 def split_partition_array(arr, den, start, length):
     pa = partition_array(len(arr), den, start, length)
     return arr[pa[0]:pa[0] + pa[1]]
+
+def apply_sliding_predicate(arr, predicate):
+    return True if len(arr) < 2 else all(predicate(arr[i], arr[i+1]) for i in range(len(arr)-1))
+
+def is_sorted_ascending(arr):
+    return apply_sliding_predicate(arr, lambda a, b: a <= b)
+
+def are_items_unique(arr):
+    return len(arr) == len(set(arr))
+
