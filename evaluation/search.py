@@ -41,9 +41,9 @@ def gp_minimize_wrapper(fn, space, n_calls):
     r = gp_minimize(fn, space, n_calls=n_calls)
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
-def minimize_wrapper(method_name, fn, space, n_calls):
+def minimize_wrapper(method_name, start, fn, space, n_calls):
     bounds = [(s.low, s.high) for s in space]
-    x0 = [np.mean(b) for b in bounds]
+    x0 = [np.mean(b) if start == 'mean' else np.random.uniform(*b) for b in bounds]
     results = []
     def callback(intermediate_result):
         if isinstance(intermediate_result, spo.OptimizeResult):
@@ -87,6 +87,7 @@ class SearchFactory:
             return gp_minimize_wrapper
         elif (name == "minimize"):
             method_name = search_config['method'].strip().lower() if 'method' in search_config else None
-            return partial(minimize_wrapper, method_name)
+            start = search_config['start'].strip().lower() if 'start' in search_config else 'mean'
+            return partial(minimize_wrapper, method_name, start)
         else:
             raise ValueError(f"Invalid search name {search_config['name']}")
