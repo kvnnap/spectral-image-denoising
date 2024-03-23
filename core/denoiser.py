@@ -27,8 +27,14 @@ class DenoiserRunParamsString:
             return DenoiserRunParamsString.obj_config_to_str(self.denoiser)
         elif key == 'search':
             return DenoiserRunParamsString.obj_config_to_str(self.search)
+        elif key == 'sample':
+            return self.sample if 'sample' in self.__dict__ else 0
         elif key in self.__dict__:
             return self.__dict__[key]
         else:
             return ''
+        
+    def compare(self, other):
+        return all(self.get_value(x) == other.get_value(x) for x in self.__dict__.keys())
+
 

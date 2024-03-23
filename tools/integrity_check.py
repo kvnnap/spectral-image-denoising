@@ -27,7 +27,7 @@ def main():
     configIds = [p.id for p in dps]
     runIds = [r.denoiserParams.id for r in runData.runs]
     missing_ids = sorted(set(configIds) - set(runIds))
-    badRunIds = list(filter(lambda run: run.denoiserParams.__dict__ != dps[run.denoiserParams.id].__dict__, runData.runs))
+    badRunIds = list(filter(lambda run: not run.denoiserParams.compare(dps[run.denoiserParams.id]), runData.runs))
     emptyFuncVals = list(filter(lambda run: not run.denoiserResult.func_vals, runData.runs))
     badResultMinimum = list(filter(lambda run: run.denoiserResult.func_vals and min(run.denoiserResult.func_vals) < run.denoiserResult.fun, runData.runs))
     funInFuncVals = list(filter(lambda run: run.denoiserResult.x_iters and run.denoiserResult.x not in run.denoiserResult.x_iters, runData.runs))
