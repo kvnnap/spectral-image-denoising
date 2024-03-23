@@ -7,3 +7,18 @@ class Result:
         self.fun = score_min
         self.func_vals = scores_global
         self.message = message
+
+    def fix(self):
+        # Add if missing
+        if self.x not in self.x_iters:
+            self.x_iters.append(self.x)
+            self.func_vals.append(self.fun)
+
+        # Make sure minimum result is x and fun
+        m = min(self.func_vals) 
+        if m < self.fun:
+            mIndex = self.func_vals.index(m) # Note, first occurence
+            self.x = self.x_iters[mIndex]
+            self.fun = self.func_vals[mIndex]
+
+            

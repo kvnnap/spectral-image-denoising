@@ -68,11 +68,11 @@ def minimize_wrapper(method_name, start, fn, space, n_calls):
     if method_name is not None:
         kwargs['method'] = method_name
     r = spo.minimize(fn, x0, **kwargs)
-    # Add last item if this algorithm does not call callback for last item
-    reported_iter = r.nit if 'nit' in r else r.nfev
-    if len(results) < reported_iter:
-        callback(r)
-    return Result(r.x.tolist(), [x for (x, _) in results], np.float64(r.fun).item(), [y for (_, y) in results], r.message)
+    res = Result(r.x.tolist(), [x for (x, _) in results], np.float64(r.fun).item(), [y for (_, y) in results], r.message)
+    # Sometimes r is not in the list, or the minimum is not r
+    res.fix()
+    return res
+
 
 # Method returned expects (fn, space, n_calls)
 class SearchFactory:

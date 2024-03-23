@@ -28,12 +28,18 @@ def main():
     runIds = [r.denoiserParams.id for r in runData.runs]
     missing_ids = sorted(set(configIds) - set(runIds))
     badRunIds = list(filter(lambda run: run.denoiserParams.__dict__ != dps[run.denoiserParams.id].__dict__, runData.runs))
+    emptyFuncVals = list(filter(lambda run: not run.denoiserResult.func_vals, runData.runs))
+    badResultMinimum = list(filter(lambda run: run.denoiserResult.func_vals and min(run.denoiserResult.func_vals) < run.denoiserResult.fun, runData.runs))
+    funInFuncVals = list(filter(lambda run: run.denoiserResult.x_iters and run.denoiserResult.x not in run.denoiserResult.x_iters, runData.runs))
 
     print(f'Runs ({len(dps)}) match totalRuns ({runData.totalRuns}): {runData.totalRuns == len(dps)}')
     print(f'Runs ({len(dps)}) match runs ({len(runData.runs)}): {len(runData.runs) == len(dps)}')
     print(f'Runs sorted: {is_sorted_ascending(runIds)}')
     print(f'Run ids unique: {are_items_unique(runIds)}')
     print(f'Denoiser Params not matching correct ids: {len(badRunIds)}')
+    print(f'Empty func_vals: {len(emptyFuncVals)}')
+    print(f'Minimum is not fun but contained in func_vals: {len(badResultMinimum)}')
+    print(f'fun not contained in func_vals: {len(funInFuncVals)}')
     print(f'Missing runs: {len(missing_ids)}')
 
 # The following code block will only execute if this script is run directly,
