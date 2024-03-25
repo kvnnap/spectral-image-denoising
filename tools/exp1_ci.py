@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.versioning import get_version
 from utils.serialisation import load
 from visualisation.row_data import RowData
+from evaluation.run import Run
 
 def main():
     versionString = get_version().to_string()
@@ -22,16 +23,18 @@ def main():
 
     resultPath = args.result
     runData = load(resultPath)
+    # runData.runs = list(filter(lambda x: x.denoiserParams.metric == 'mse', runData.runs))
+    
+
     rowData = RowData(runData)
 
     # deduce the span
     # process data to rows/cols
-
-    filterDict = rowData.get_filter_dict()
-    keys = filterDict.keys()
-    values = filterDict.values()
-    combinations = list(itertools.product(*values))
-    filters = [{key: [ value ] for key, value in zip(keys, combination)} for combination in combinations]
+    for p in runData.parameterSpace:
+        p.samples = 1
+    dps = Run.get_denoiser_params(runData.parameterSpace)
+    filters = [{k: [dp.get_value(k)] for k in ['ref-noisy', 'imageLoader', 'metric', 'thresholding', 'search', 'iterations', 'denoiser']} for dp in dps]
+    # filters = list(filter(lambda x: x['metric'] == ['mse'], filters))
     filtered = [rowData.filter_rows(f) for f in filters]
 
     # this can change
