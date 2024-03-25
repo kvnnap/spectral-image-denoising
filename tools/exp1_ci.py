@@ -4,33 +4,15 @@
 import sys
 import os
 import argparse
+import itertools
+import numpy as np
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
 from utils.serialisation import load
-import itertools
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import norm
-
-def filter_data(header, rowData, filters):
-    def condition(row):
-        AndResult = True
-        for name, listValues in filters.items():
-            if not listValues:
-                continue
-            rowIndex = header.index(name)
-            OrResult = False
-            for value in listValues:
-                OrResult |= row[rowIndex] == value
-                if OrResult:
-                    break
-            AndResult &= OrResult
-            if AndResult == False:
-                break
-        return AndResult
-    return list(filter(condition, rowData))
+from visualisation.row_data import RowData
 
 def main():
     versionString = get_version().to_string()
@@ -40,29 +22,20 @@ def main():
 
     resultPath = args.result
     runData = load(resultPath)
+    rowData = RowData(runData)
 
     # deduce the span
     # process data to rows/cols
-    header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'denoiser', 'denoiser_coeff', 'sample']
-    filterDict = { key: set() for key in header if not(key in ['id', 'score', 'sample', 'denoiser']) }
-    row = []
-    scoreIndex = header.index('score')
-    for run in runData.runs:
-        dp = run.denoiserParams
-        for key in filterDict:
-            filterDict[key].update({ dp.get_value(key) })
-        rowItem = [dp.get_value(val) for val in header]
-        rowItem[scoreIndex] = run.denoiserResult.fun
-        row.append(rowItem)
-    filterDict = {k: v for k, v in filterDict.items() if len(v) > 1}
 
+    filterDict = rowData.get_filter_dict()
     keys = filterDict.keys()
     values = filterDict.values()
     combinations = list(itertools.product(*values))
     filters = [{key: [ value ] for key, value in zip(keys, combination)} for combination in combinations]
-    filtered = [filter_data(header, row, f) for f in filters]
+    filtered = [rowData.filter_rows(f) for f in filters]
 
     # this can change
+    scoreIndex = RowData.HEADER.index('score')
     filtered = [[p[scoreIndex] for p in x] for x in filtered]
     #filtered = [{**a, **b} for a, b in zip(filters, [{'scores': x} for x in filtered])]
     filtered = [(a, b) for a, b in zip(filters, filtered)]

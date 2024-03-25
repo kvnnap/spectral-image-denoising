@@ -9,29 +9,11 @@ from collections import Counter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.run import RunData, RunResult, ParameterSpace
 from utils.versioning import get_version
-from utils.serialisation import save, load
+from utils.serialisation import load
 from visualisation.run import ResultViewer
+from visualisation.row_data import RowData
 from utils.image import set_base_path
-
-def filter_data(header, rowData, filters):
-    def condition(row):
-        AndResult = True
-        for name, listValues in filters.items():
-            if not listValues:
-                continue
-            rowIndex = header.index(name)
-            OrResult = False
-            for value in listValues:
-                OrResult |= row[rowIndex] == value
-                if OrResult:
-                    break
-            AndResult &= OrResult
-            if AndResult == False:
-                break
-        return AndResult
-    return list(filter(condition, rowData))
 
 def main():
     versionString = get_version().to_string()
@@ -44,34 +26,16 @@ def main():
     resultPath = args.result
     runData = load(resultPath)
 
-    # deduce the span
-    # process data to rows/cols
-    header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time', 'message']
-    filterDict = { key: set() for key in header if not(key in ['id', 'score', 'sample', 'iter', 'time', 'message']) }
-    row = []
-    scoreIndex = header.index('score')
-    iterIndex = header.index('iter')
-    timeIndex = header.index('time')
-    messageIndex = header.index('message')
-    for run in runData.runs:
-        dp = run.denoiserParams
-        for key in filterDict:
-            filterDict[key].update({ dp.get_value(key) })
-        rowItem = [dp.get_value(val) for val in header]
-        rowItem[scoreIndex] = run.denoiserResult.fun
-        rowItem[iterIndex] = len(run.denoiserResult.func_vals)
-        rowItem[timeIndex] = round(run.time * 1e-9)
-        rowItem[messageIndex] = run.denoiserResult.message if hasattr(run.denoiserResult, 'message') else ''
-        row.append(rowItem)
-    row.sort(key=lambda r: r[scoreIndex])
-
-    filterDict = {k: sorted(v) for k, v in filterDict.items() if len(v) > 1}
+    rowData = RowData(runData)
+    scoreIndex = RowData.HEADER.index('score')
+    rowData.sort_row_data(scoreIndex)
 
     catToVary = {
         'imageLoader': [ 'gray_tm' ], 
         'ref-noisy': [], 
         'metric': [ 'mse', 'psnr', 'ssim' ]
     }
+    filterDict = rowData.get_filter_dict()
     filterDict = {k: v if v else filterDict[k] for k,v in catToVary.items()}
 
     keys = filterDict.keys()
@@ -80,7 +44,7 @@ def main():
     filters = [{key: [ value ] for key, value in zip(keys, combination)} for combination in combinations]
 
     # Grab first row in each
-    filtered = [filter_data(header, row, f)[0] for f in filters]
+    filtered = [rowData.filter_rows(f)[0] for f in filters]
 
     # runs are sorted by id
     runData.runs.sort(key=lambda r: r.denoiserParams.id)
@@ -89,7 +53,7 @@ def main():
     # Stats
     totalItems = len(runData.runs)
     stats = [ 'search', 'denoiser_coeff']
-    stats = {s: header.index(s) for s in stats}
+    stats = {s: RowData.HEADER.index(s) for s in stats}
     results = {s: { k: [count, totalItems, count / totalItems * 100] for k, count in Counter([r[sId] for r in filtered]).items() } for s, sId in stats.items()}
     print(results)
 

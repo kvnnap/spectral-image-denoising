@@ -14,45 +14,26 @@ from utils.math import euclidean_distance
 from utils.image import set_base_path
 
 from visualisation.run_viewer import RunViewer
+from visualisation.row_data import RowData
 
 class ResultViewer(tk.Tk):
     def __init__(self, runData):
         tk.Tk.__init__(self)
 
         # process data to rows/cols
-        self.header = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time', 'message']
-        self.filterDict = { key: set() for key in self.header if not(key in ['id', 'score', 'sample', 'iter', 'time', 'message']) }
-        row = []
-        scoreIndex = self.header.index('score')
-        iterIndex = self.header.index('iter')
-        timeIndex = self.header.index('time')
-        messageIndex = self.header.index('message')
-        for run in runData.runs:
-            dp = run.denoiserParams
-            for key in self.filterDict:
-                self.filterDict[key].update({ dp.get_value(key) })
-            rowItem = [dp.get_value(val) for val in self.header]
-            rowItem[scoreIndex] = run.denoiserResult.fun
-            rowItem[iterIndex] = len(run.denoiserResult.func_vals)
-            rowItem[timeIndex] = round(run.time * 1e-9)
-            rowItem[messageIndex] = run.denoiserResult.message if hasattr(run.denoiserResult, 'message') else ''
-            row.append(rowItem)
-        
-        # Only filter categories with more than 1 item
-        self.filterDict = {k: v for k, v in self.filterDict.items() if len(v) > 1}
+        self.rowData = RowData(runData)
         
         # continue
         self.title('Result Explorer')
         self.isLoading = False
         self.runData = runData
-        self.rowData = row
         self.renderCoeff = False
         self.grid_columnconfigure(0, weight = 1)
         self.grid_rowconfigure(0, weight = 1)
         self.frame = tk.Frame(self)
         self.frame.grid_columnconfigure(0, weight = 1)
         self.frame.grid_rowconfigure(0, weight = 1)
-        self.sheet = Sheet(self.frame, data = row, header=self.header)
+        self.sheet = Sheet(self.frame, data = self.rowData.get_row_data(), header=RowData.HEADER)
         self.sheet.enable_bindings('toggle_select', 'single_select', 'ctrl_select', 'row_select', 'column_select', 'right_click_popup_menu', 'column_width_resize')
         self.sheet.popup_menu_add_command("sort asc", partial(self.sort, False))
         self.sheet.popup_menu_add_command("sort desc", partial(self.sort, True))
@@ -70,12 +51,14 @@ class ResultViewer(tk.Tk):
         self.checkboxFrame = tk.Frame(self.frame)
         self.checkboxFrame.grid(row=2, column=0)
         self.filterValues = {}
-        if len(self.filterDict) > 0:
-            for i, key in enumerate(self.filterDict.keys()):
+        filterDict = self.rowData.get_filter_dict()
+
+        if len(filterDict) > 0:
+            for i, key in enumerate(filterDict.keys()):
                 group_frame = tk.LabelFrame(self.checkboxFrame, text=key)
                 group_frame.grid(row=0, column=i)
                 self.filterValues[key] = []
-                for j, f in enumerate(sorted(self.filterDict[key])):
+                for j, f in enumerate(sorted(filterDict[key])):
                     ck_var = tk.BooleanVar()
                     ck = tk.Checkbutton(group_frame, text=f, variable=ck_var)
                     if key == 'ref-noisy' or key == 'denoiser_coeff':
@@ -91,31 +74,13 @@ class ResultViewer(tk.Tk):
         for key, listValues in self.filterValues.items():
             filters[key] = [val_name for val_name, ck_var in listValues if ck_var.get()]
         filters = { key: val for key, val in filters.items() if val }
-        self.filter_data(filters)
+        filtered_data = self.rowData.filter_rows(filters)
+        self.sheet.set_sheet_data(filtered_data)
 
     def sort(self, reverse=False, event = None):
         columnId = self.sheet.get_selected_columns().pop()
-        self.rowData.sort(key=lambda row: row[columnId], reverse=reverse)
+        self.rowData.sort_row_data(columnId, reverse)
         self.apply_filter()
-
-    def filter_data(self, filters):
-        def condition(row):
-            AndResult = True
-            for name, listValues in filters.items():
-                if not listValues:
-                    continue
-                rowIndex = self.header.index(name)
-                OrResult = False
-                for value in listValues:
-                    OrResult |= row[rowIndex] == value
-                    if OrResult:
-                        break
-                AndResult &= OrResult
-                if AndResult == False:
-                    break
-            return AndResult
-        filtered_data = list(filter(condition, self.rowData))
-        self.sheet.set_sheet_data(filtered_data)
 
     def row_select(self, event = None):
         if event[0] == 'select_row':
