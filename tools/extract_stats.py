@@ -4,11 +4,12 @@
 import sys
 import os
 import argparse
-import itertools
 import math
 import openpyxl
+from itertools import chain, combinations, product
 from collections import Counter
-from openpyxl.styles import Font
+from openpyxl.styles import Font, PatternFill, Color
+from openpyxl.formatting.rule import ColorScaleRule
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -16,13 +17,13 @@ from utils.versioning import get_version
 from utils.serialisation import load, save
 from visualisation.row_data import RowData
 
-def compute_stats(rowData, catsConst, catsVar, topPercentage, combsLength=0):
+def compute_stats(rowData, catsConst, catsVar, topPercentage, combsLength):
     filterDict = rowData.get_filter_dict()
     masterFilterDict = {k: v if v else filterDict[k] for k,v in catsVar.items()}
     if combsLength <= 0:
-        combsLength = len(masterFilterDict)
+        combsLength = len(masterFilterDict) - 1
     # get combinations of filter dict
-    combs = itertools.chain.from_iterable(itertools.combinations(masterFilterDict.keys(), r) for r in range(combsLength))
+    combs = chain.from_iterable(combinations(masterFilterDict.keys(), r) for r in range(combsLength + 1))
     filterDicts = [{k: masterFilterDict[k] for k in c} for c in combs]
 
     result = []
@@ -30,8 +31,8 @@ def compute_stats(rowData, catsConst, catsVar, topPercentage, combsLength=0):
         filterDict = {**catsConst, **filterDict}
         keys = filterDict.keys()
         values = filterDict.values()
-        combinations = list(itertools.product(*values))
-        filters = [{key: [ value ] for key, value in zip(keys, combination)} for combination in combinations]
+        combs = list(product(*values))
+        filters = [{key: [ value ] for key, value in zip(keys, comb)} for comb in combs]
 
         # Columns to get stats about
         colStatKeys = {s: RowData.HEADER.index(s) for s in masterFilterDict.keys() - filterDict.keys()}
@@ -45,15 +46,28 @@ def compute_stats(rowData, catsConst, catsVar, topPercentage, combsLength=0):
             fRows = fRows[:numItems]
             stat = { s : Counter([row[i] for row in fRows]) for s, i in colStatKeys.items() }
             stat = { s : { k : [c, c / numItems * 100] for k, c in count.items() } for s, count in stat.items() }
-            stats.append({'filter': f, 'stats': stat, 'rowCount': totalRowCount, 'rowsFiltered': numItems })
+            stats.append({'Filter': f, 'Stats': stat, 'RowCount': totalRowCount, 'RowsFiltered': numItems })
             #filtered.append(fRows)
-        result.append(stats)
+        result.append({'Combination': filterDict, 'Permutations': stats})
     
-    return result
+    return {
+        'ConstantCategories': catsConst,
+        'VariableCategories': masterFilterDict,
+        'TopPercentage': topPercentage,
+        'CombinationLength': combsLength,
+        'Result': result
+    }
 
-def to_excel(results):
+def to_excel(outputFile, results):
     workbook = openpyxl.Workbook()
     
+    blue_fill = PatternFill(start_color='99CCFF', end_color='99CCFF', fill_type='solid')
+    # Define the color scale rule
+    color_scale_rule = ColorScaleRule(
+        start_type="num", start_value=0, start_color=Color(rgb="FF0000"),
+        end_type="num", end_value=100, end_color=Color(rgb="00FF00")
+    )
+
     # Sheet generator
     def sheet_enumerable():
         yield workbook.active
@@ -66,49 +80,74 @@ def to_excel(results):
         sheet = next(sheetGen)
 
         # Gather the const vars
-        catsConst = result['catsConst']
+        catsConst = result['ConstantCategories']
         sheet.title = '_'.join(v[0] for v in catsConst.values())
 
-        # Grab actualr result
-        resList = result['result']
-        for resItem in resList:
-            insertHeader = True
-            for res in resItem:
+        # Form all header columns
+        allComibnations = {**result['ConstantCategories'], **result['VariableCategories']}
+        headerIndex = {}
+        valueIndex = {}
+        count = 0
+        for category, values in allComibnations.items():
+            headerIndex[category] = count
+            for value in values:
+                valueIndex[value] = count
+                count += 1
 
-                # Append header
-                if insertHeader:
-                    header = list(res['filter'].keys()) + list(res['stats'].keys())
-                    sheet.append(header)
-                    for cell in sheet[sheet.max_row]:
-                        cell.font = Font(bold=True)
-                    insertHeader = False
+        # Add header and make it bold
+        row = [''] * len(valueIndex)
+        for k, v in headerIndex.items():
+            row[v] = k
+        sheet.append(row)
+        sheet.append(list(valueIndex.keys()))
+        for i in range(1, 3):
+            for cell in sheet[i]:
+                cell.font = Font(bold=True)
+
+        resList = result['Result']
+        for resItem in resList:
+            # Optional, show header again
+
+            perms = resItem['Permutations']
+            for perm in perms:
 
                 # Append results
-                stats = res['stats']
-                
-                # Get values for const categories
-                row = [r[0] for r in res['filter'].values()]
+                stats = perm['Stats']
 
-                # Sort values by top percentage scores and add to row-tail 
-                r = [dict(sorted(vals.items(), key=lambda x:x[1][0], reverse=True)) for vals in stats.values()]
-                rowTail = ['-'.join(['/'.join([str(k), str(round(v[1],2))]) for k,v in obj.items()]) for obj in r]
+                row = [''] * len(valueIndex)
 
-                # append to sheet
-                sheet.append(row + rowTail)
+                sheet.append(row)
+                s_row = sheet[sheet.max_row]
+
+                # Fixed values are always 100%
+                for key, stat in perm['Filter'].items():
+                    cell = s_row[valueIndex[stat[0]]]
+                    cell.value = 100
+                    cell.fill = blue_fill
+
+                # Fill frequency row
+                for col, statDict in stats.items():
+                    for key, stat in statDict.items():
+                        cell = s_row[valueIndex[key]]
+                        cell.value = round(stat[1], 2)
+                        sheet.conditional_formatting.add(cell.coordinate, color_scale_rule)
         
             sheet.append([])
-        sheet.append([])
-        sheet.append([])
     
-    workbook.save('stats.xlsx')
+    workbook.save(outputFile)
 
 def main():
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Generate a matrix for top x% results.\n{versionString}')
-    parser.add_argument('--result', default='smb/all_results.json', help='The result to load')
+    parser.add_argument('--result', default='all_results.json', help='The result to load')
+    parser.add_argument('--percentage', default=5, type=int, help='The top percentage of filtered results that will be considered')
+    parser.add_argument('--combinations', default=0, type=int, help='The largest selection of comibnations. 2 will give pair combinations from catsVar')
+    parser.add_argument('--output', default='stats', help='Output file name without extension')
+
     args = parser.parse_args()
-    combsLength = 3
-    topPercentage = 5
+    topPercentage = args.percentage
+    combsLength = args.combinations
+    outputName = args.output
 
     # Load run data
     print('Loading data')
@@ -133,13 +172,15 @@ def main():
         'denoiser_coeff': []
     }
 
-    filterDict = rowData.get_filter_dict()
-    results = [{'catsConst': catsConst(k), 'filterDict': filterDict, 'result': compute_stats(rowData, catsConst(k), catsVar, topPercentage, combsLength)} for k in ['mse', 'psnr', 'ssim']]
+    results = [compute_stats(rowData, catsConst(k), catsVar, topPercentage, combsLength) for k in ['mse', 'psnr', 'ssim']]
 
     print('Saving results')
-    to_excel(results)
-    save('stats.json', results, False)
+    save(f'{outputName}.json', results, False)
+    to_excel(f'{outputName}.xlsx', results)
     print('Done')
+
+    # results = load('stats.json')
+    # to_excel(results)
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
