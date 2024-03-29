@@ -58,7 +58,7 @@ class ResultViewer(tk.Tk):
                 group_frame = tk.LabelFrame(self.checkboxFrame, text=key)
                 group_frame.grid(row=0, column=i)
                 self.filterValues[key] = []
-                for j, f in enumerate(sorted(filterDict[key])):
+                for j, f in enumerate(filterDict[key]):
                     ck_var = tk.BooleanVar()
                     ck = tk.Checkbutton(group_frame, text=f, variable=ck_var)
                     if key == 'ref-noisy' or key == 'denoiser_coeff':

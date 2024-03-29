@@ -22,12 +22,13 @@ class RowData():
         return list(filter(condition, rowData))
 
     @staticmethod
-    def to_rows(runData, filterDict):
+    def to_rows(runData):
         row = []
         scoreIndex = RowData.HEADER.index('score')
         iterIndex = RowData.HEADER.index('iter')
         timeIndex = RowData.HEADER.index('time')
         messageIndex = RowData.HEADER.index('message')
+        filterDict = { key: set() for key in RowData.HEADER if key not in RowData.FILTER_FROM_DICT }
         for run in runData.runs:
             dp = run.denoiserParams
             for key in filterDict:
@@ -38,12 +39,13 @@ class RowData():
             rowItem[timeIndex] = round(run.time * 1e-9)
             rowItem[messageIndex] = run.denoiserResult.message if hasattr(run.denoiserResult, 'message') else ''
             row.append(rowItem)
-        return row
+        for k, v in filterDict.items():
+            filterDict[k] = sorted(v)
+        return (row, filterDict)
     
     def __init__(self, runData):
         self.runData = runData
-        self.filterDict = { key: set() for key in RowData.HEADER if key not in RowData.FILTER_FROM_DICT }
-        self.rowData = RowData.to_rows(runData, self.filterDict)
+        self.rowData, self.filterDict = RowData.to_rows(runData)
         # Only filter categories with more than 1 item
         self.filterDict = {k: v for k, v in self.filterDict.items() if len(v) > 1}
 
