@@ -81,7 +81,8 @@ def to_excel(outputFile, results):
 
         # Gather the const vars
         catsConst = result['ConstantCategories']
-        sheet.title = '_'.join(v[0] for v in catsConst.values())
+        percentage = result['TopPercentage']
+        sheet.title = f"{'{:02}'.format(percentage)}_{'_'.join(v[0] for v in catsConst.values())}"
 
         # Form all header columns
         allComibnations = {**result['ConstantCategories'], **result['VariableCategories']}
@@ -95,11 +96,11 @@ def to_excel(outputFile, results):
                 count += 1
 
         # Add header and make it bold
-        row = [''] * len(valueIndex)
+        row = [''] * len(valueIndex) + ['Stats']
         for k, v in headerIndex.items():
             row[v] = k
         sheet.append(row)
-        sheet.append(list(valueIndex.keys()))
+        sheet.append(list(valueIndex.keys()) + ['Filtered', 'Count'])
         for i in range(1, 3):
             for cell in sheet[i]:
                 cell.font = Font(bold=True)
@@ -114,7 +115,7 @@ def to_excel(outputFile, results):
                 # Append results
                 stats = perm['Stats']
 
-                row = [''] * len(valueIndex)
+                row = [''] * len(valueIndex) + [perm['RowsFiltered'], perm['RowCount']]
 
                 sheet.append(row)
                 s_row = sheet[sheet.max_row]
@@ -140,12 +141,12 @@ def main():
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Generate a matrix for top x% results.\n{versionString}')
     parser.add_argument('--result', default='all_results.json', help='The result to load')
-    parser.add_argument('--percentage', default=5, type=int, help='The top percentage of filtered results that will be considered')
+    parser.add_argument('--percentages', default='5,10,15,25', help='The top percentages (comma separated) of filtered results that will be considered')
     parser.add_argument('--combinations', default=0, type=int, help='The largest selection of comibnations. 2 will give pair combinations from catsVar')
     parser.add_argument('--output', default='stats', help='Output file name without extension')
 
     args = parser.parse_args()
-    topPercentage = args.percentage
+    topPercentages = list(map(int, args.percentages.split(',')))
     combsLength = args.combinations
     outputName = args.output
 
@@ -172,7 +173,7 @@ def main():
         'denoiser_coeff': []
     }
 
-    results = [compute_stats(rowData, catsConst(k), catsVar, topPercentage, combsLength) for k in ['mse', 'psnr', 'ssim']]
+    results = [compute_stats(rowData, catsConst(k), catsVar, p, combsLength) for p in topPercentages for k in ['hdrvdp3', 'mse', 'psnr', 'ssim']]
 
     print('Saving results')
     save(f'{outputName}.json', results, False)
