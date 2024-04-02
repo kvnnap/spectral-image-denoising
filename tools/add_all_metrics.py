@@ -67,11 +67,11 @@ def main():
 
     print('Processing')
     boundTask = partial(task, imageBase=args.image_base)
+    splitRuns = [split_partition_array(runData.runs, cores, i, 1) for i in range(cores)]
     if cores == 1:
-        pResults = boundTask(runData.runs)
-        # pResults = map(boundTask, splitRuns)
+        # pResults = [boundTask(runData.runs)]
+        pResults = map(boundTask, splitRuns)
     else:
-        splitRuns = [split_partition_array(runData.runs, cores, i, 1) for i in range(cores)]
         with mp.Pool(processes=cores, maxtasksperchild=1) as pool:
             pResults = pool.map(boundTask, splitRuns)
             pool.close()
