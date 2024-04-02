@@ -14,6 +14,7 @@ class RunResult:
     def __init__(self, denoiserParams, denoiserResult, time):
         self.denoiserParams = denoiserParams
         self.denoiserResult = denoiserResult
+        self.bestMetricResults = None
         self.time = time
 
 class RunData:
