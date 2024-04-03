@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 class RowData():
     HEADER = ['id', 'name', 'ref-noisy', 'imageLoader', 'metric', 'score', 'thresholding', 'search', 'iterations', 'iter', 'denoiser', 'denoiser_coeff', 'sample', 'time', 'message']
     FILTER_FROM_DICT = ['id', 'score', 'sample', 'iter', 'time', 'message']
@@ -51,6 +53,31 @@ class RowData():
 
     def sort_row_data(self, columnId, reverse=False):
         self.rowData.sort(key=lambda row: row[columnId], reverse=reverse)
+
+    def sort_row_data_metric(self, reverse=False):
+        idIndex = RowData.HEADER.index('id')
+
+        # Ensure runs are sorted by id
+        runs = sorted(self.runData.runs, key=lambda r: r.denoiserParams.id)
+
+        def cmp(r1, r2):
+            r = [r1, r2]
+            id = [x[idIndex] for x in r]
+            run = [runs[i] for i in id]
+            # Compute relative scores
+            div = [[v[0] / v[1] if v[1] > 0 else v[1] / v[0] for v in r.bestMetricResults.values()] for r in run]
+            # Count the metrics that improved
+            cnt = [sum(1 for v in d if v > 1) for d in div]
+
+            # More metrics counted, the better
+            if cnt[0] != cnt[1]:
+                return cnt[1] - cnt[0]
+            
+            # If equal, discriminate with sum
+            sums = [sum(d) for d in div]
+            return sums[1] - sums[0]
+
+        self.rowData.sort(key=cmp_to_key(cmp), reverse=reverse)
 
     def get_run_data(self):
         return self.runData

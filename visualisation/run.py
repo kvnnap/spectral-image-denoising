@@ -37,15 +37,17 @@ class ResultViewer(tk.Tk):
         self.sheet.enable_bindings('toggle_select', 'single_select', 'ctrl_select', 'row_select', 'column_select', 'right_click_popup_menu', 'column_width_resize')
         self.sheet.popup_menu_add_command("sort asc", partial(self.sort, False))
         self.sheet.popup_menu_add_command("sort desc", partial(self.sort, True))
+        self.sheet.popup_menu_add_command("sort metric asc", partial(self.sort_metric, False))
+        self.sheet.popup_menu_add_command("sort metric desc", partial(self.sort_metric, True))
         self.sheet.extra_bindings([('all_select_events', self.row_select)])
         self.frame.grid(row = 0, column = 0, sticky = "nswe")
         self.sheet.grid(row = 0, column = 0, sticky = "nswe")
 
-        self.cmpButton = tk.Button(self.frame, text='Compare', command=self.compare_coeff)
-        self.cmpButton.grid(row = 1, column = 0, sticky='w')
+        # self.cmpButton = tk.Button(self.frame, text='Compare', command=self.compare_coeff)
+        # self.cmpButton.grid(row = 1, column = 0, sticky='w')
 
-        self.label = tk.Label(self.frame, text='0')
-        self.label.grid(row = 1, column = 0, sticky='e')
+        # self.label = tk.Label(self.frame, text='0')
+        # self.label.grid(row = 1, column = 0, sticky='e')
 
         # Checkboxes?
         self.checkboxFrame = tk.Frame(self.frame)
@@ -81,6 +83,12 @@ class ResultViewer(tk.Tk):
         columnId = self.sheet.get_selected_columns().pop()
         self.rowData.sort_row_data(columnId, reverse)
         self.apply_filter()
+
+    def sort_metric(self, reverse=False, event = None):
+        self.toggle_loading()
+        self.rowData.sort_row_data_metric(reverse)
+        self.apply_filter()
+        self.toggle_loading()
 
     def row_select(self, event = None):
         if event[0] == 'select_row':
