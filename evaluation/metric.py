@@ -63,7 +63,7 @@ def local_hdrvdp3(ref, noisy, dpString):
     ref = np.ascontiguousarray(ref)
     noisy = matlab.single(noisy) if noisy.dtype == np.float32 else matlab.double(noisy)
     ref = matlab.single(ref) if ref.dtype == np.float32 else matlab.double(ref)
-    result = h.hdrvdp3('side-by-side', noisy, ref, s, ppd, ['quiet', True])
+    result = h.hdrvdp3('side-by-side', noisy, ref, s, ppd, ['use_gpu', False, 'quiet', True])
     return -result['Q']
 
 class MetricFactory:
