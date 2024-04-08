@@ -33,7 +33,8 @@ class ResultImageProcessor():
             'mse': (local_mse(self.refImage, self.image, self.denoiserParams), local_mse(self.refImage, reconstructedImage, self.denoiserParams)),
             'ssim': (local_ssim(self.refImage, self.image, self.denoiserParams), local_ssim(self.refImage, reconstructedImage, self.denoiserParams)),
             'psnr': (local_psnr(self.refImage, self.image, self.denoiserParams), local_psnr(self.refImage, reconstructedImage, self.denoiserParams)),
-            'hdrvdp3': (local_hdrvdp3(self.refImage, self.image, self.denoiserParams), local_hdrvdp3(self.refImage, reconstructedImage, self.denoiserParams))
+            'hdrvdp3': (local_hdrvdp3(self.refImage, self.image, self.denoiserParams), local_hdrvdp3(self.refImage, reconstructedImage, self.denoiserParams)),
+            'flip': (local_flip(self.refImage, self.image, self.denoiserParams), local_flip(self.refImage, reconstructedImage, self.denoiserParams))
         }
         return ret_obj
 

@@ -68,6 +68,9 @@ class RunViewer():
         self.hdrvdpLabel = tk.Label(self.subWindow, text='HDRVDP3: 0')
         self.hdrvdpLabel.pack()
 
+        self.flipLabel = tk.Label(self.subWindow, text='FLIP: 0')
+        self.flipLabel.pack()
+
         self.uiCollection = [self.toneMapCheckbox, self.toneMapPPCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
         self.plot()
@@ -87,6 +90,7 @@ class RunViewer():
         self.ssimLabel.config(text=f"SSIM: { scores['ssim'] }")
         self.psnrLabel.config(text=f"PSNR: { scores['psnr'] }")
         self.hdrvdpLabel.config(text=f"HDRVDP3: { scores['hdrvdp3'] }")
+        self.flipLabel.config(text=f"FLIP: { scores['flip'] }")
         self.toggle_loading()
     
     def plot_raw(self, coeffImage, image, denImage):

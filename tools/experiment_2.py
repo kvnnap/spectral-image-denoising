@@ -74,7 +74,7 @@ def main():
     transformations = ['Identity', 'FlipLR', 'FlipUD']
 
     # Define metrics
-    metrics = ['mse', 'ssim', 'psnr', 'hdrvdp3']
+    metrics = ['flip', 'mse', 'ssim', 'psnr', 'hdrvdp3']
 
     # Define colors for plotting
     colors = ['b', 'g', 'r', 'c']

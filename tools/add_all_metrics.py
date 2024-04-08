@@ -20,7 +20,7 @@ def task(runs, imageBase):
 
     imgDict = {}
     scoreDict = {}
-    metrics = { 'hdrvdp3': local_hdrvdp3, 'mse': local_mse, 'psnr': local_psnr, 'ssim': local_ssim }
+    metrics = { 'flip': local_flip, 'hdrvdp3': local_hdrvdp3, 'mse': local_mse, 'psnr': local_psnr, 'ssim': local_ssim }
     result = []
     for run in runs:
         dp = run.denoiserParams

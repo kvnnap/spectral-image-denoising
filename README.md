@@ -52,7 +52,8 @@ The options we're giving below are for bounded variables (which is what we're us
             "ssim",
             "mse_ssim",
             "psnr",
-            "hdrvdp3"
+            "hdrvdp3",
+            "flip"
         ],
         "thresholds": [
             "mult",

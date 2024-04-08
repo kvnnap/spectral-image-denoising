@@ -173,7 +173,7 @@ def main():
         'denoiser_coeff': []
     }
 
-    results = [compute_stats(rowData, catsConst(k), catsVar, p, combsLength) for p in topPercentages for k in ['hdrvdp3', 'mse', 'psnr', 'ssim']]
+    results = [compute_stats(rowData, catsConst(k), catsVar, p, combsLength) for p in topPercentages for k in ['flip', 'hdrvdp3', 'mse', 'psnr', 'ssim']]
 
     print('Saving results')
     save(f'{outputName}.json', results, False)
