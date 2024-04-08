@@ -4,6 +4,7 @@ import argparse
 import multiprocessing as mp
 import time
 import tqdm
+import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -121,6 +122,7 @@ class Run:
 def main():
     versionString = get_version().to_string()
     print(versionString)
+    print(f'GPU available: {torch.cuda.is_available()}')
     parser = argparse.ArgumentParser(description=f'Evaluates denoising using the parameter space provided in the input json file.\n{versionString}')
     parser.add_argument('--config', default='config.json', help='File path to the JSON ParameterSpace list')
     parser.add_argument('--result', default='result.json', help='Where to save the JSON Run object')
