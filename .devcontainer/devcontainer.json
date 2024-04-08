@@ -8,7 +8,8 @@
 	},
 	"mounts": [
 		"type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly"
-	]
+	],
+	"runArgs": ["--gpus", "all"]
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

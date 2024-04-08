@@ -115,8 +115,15 @@ Copy your licenced copy of *CurveLab-2.1.3.tar.gz* inside the *.devcontainer* fo
 ## Install python requirements
 
 ```bash
-pip3 install -r requirements.txt
+./install_pips.sh
 ```
+or
+
+```bash
+pip3 install -r requirements.txt
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
 ## Information
 These scripts can import RAW files which container HDR images. The format is:
 
