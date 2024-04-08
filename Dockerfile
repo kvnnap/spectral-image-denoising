@@ -80,6 +80,8 @@ COPY --chown=$USER:$USER --from=builder $HOME/opt $HOME/opt
 COPY --chown=$USER:$USER --from=builder $HOME/MR $HOME/MR
 COPY --chown=$USER:$USER --from=builder $HOME/.local $HOME/.local
 COPY --chown=$USER:$USER core /app/core
+COPY --chown=$USER:$USER flip /app/flip
+COPY --chown=$USER:$USER flip_torch /app/flip_torch
 COPY --chown=$USER:$USER evaluation /app/evaluation
 COPY --chown=$USER:$USER visualisation /app/visualisation
 COPY --chown=$USER:$USER utils /app/utils
