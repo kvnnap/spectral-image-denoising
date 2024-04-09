@@ -50,7 +50,7 @@ def task(runs, imageBase):
             result.append({k: (scoreDict[scoreDictEntry][k], v(ref, den, dp)) for k,v in metrics.items()})
         except Exception as e:
             # Add empty result to preserve order
-            result.append({})
+            result.append(None)
 
     return result
 
