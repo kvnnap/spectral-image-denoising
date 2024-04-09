@@ -23,30 +23,35 @@ def task(runs, imageBase):
     metrics = { 'flip': local_flip, 'hdrvdp3': local_hdrvdp3, 'mse': local_mse, 'psnr': local_psnr, 'ssim': local_ssim }
     result = []
     for run in runs:
-        dp = run.denoiserParams
+        try:
+            dp = run.denoiserParams
 
-        # Load images if not in dictionary
-        imgs = []
-        for img in dp.pairImage:
-            imageDictEntry = img + '-' + dp.imageLoader
-            if imageDictEntry not in imgDict:
-                imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
-                imgDict[imageDictEntry] = imageLoaderMethod(img)
-            # Get image reference
-            imgs.append(imgDict[imageDictEntry])
+            # Load images if not in dictionary
+            imgs = []
+            for img in dp.pairImage:
+                imageDictEntry = img + '-' + dp.imageLoader
+                if imageDictEntry not in imgDict:
+                    imageLoaderMethod = ImageLoaderFactory.create(dp.imageLoader)
+                    imgDict[imageDictEntry] = imageLoaderMethod(img)
+                # Get image reference
+                imgs.append(imgDict[imageDictEntry])
 
-        # Get score
-        ref, noisy = (imgs[0], imgs[1])
-        denoiserMethod = DenoiserFactory.create(dp.denoiser)
-        thresholdMethod = ThresholdFactory.create(dp.thresholding)
-        coeffs = run.denoiserResult.x
-        den = denoiserMethod.get_image(noisy, coeffs, thresholdMethod)
+            # Get score
+            ref, noisy = (imgs[0], imgs[1])
+            denoiserMethod = DenoiserFactory.create(dp.denoiser)
+            thresholdMethod = ThresholdFactory.create(dp.thresholding)
+            coeffs = run.denoiserResult.x
+            den = denoiserMethod.get_image(noisy, coeffs, thresholdMethod)
 
-        # Fill scoreDict
-        scoreDictEntry =  '-'.join(dp.pairImage) + '-' + dp.imageLoader
-        if scoreDictEntry not in scoreDict:
-            scoreDict[scoreDictEntry] = {k: v(ref, noisy, dp) for k,v in metrics.items()}
-        result.append({k: (scoreDict[scoreDictEntry][k], v(ref, den, dp)) for k,v in metrics.items()})
+            # Fill scoreDict
+            scoreDictEntry =  '-'.join(dp.pairImage) + '-' + dp.imageLoader
+            if scoreDictEntry not in scoreDict:
+                scoreDict[scoreDictEntry] = {k: v(ref, noisy, dp) for k,v in metrics.items()}
+            result.append({k: (scoreDict[scoreDictEntry][k], v(ref, den, dp)) for k,v in metrics.items()})
+        except Exception as e:
+            # Add empty result to preserve order
+            result.append({})
+
     return result
 
 def main():
