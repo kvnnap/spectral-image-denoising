@@ -55,6 +55,11 @@ class RowData():
         self.rowData.sort(key=lambda row: row[columnId], reverse=reverse)
 
     def sort_row_data_metric(self, reverse=False):
+        # Check if can sort
+        if any(not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None for run in self.runData.runs):
+            print('Not all runs have a valid bestMetricResults attribute')
+            return
+        
         idIndex = RowData.HEADER.index('id')
 
         # Ensure runs are sorted by id

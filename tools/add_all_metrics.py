@@ -70,11 +70,14 @@ def main():
     print('Loading result')
     runData = load(resultPath)
 
-    print('Processing')
+    # Only compute the ones that are missing
+    runsToCompute = [run for run in runData.runs if not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None]
+
+    print(f'Processing {len(runsToCompute)} runs out of {len(runData.runs)}')
     boundTask = partial(task, imageBase=args.image_base)
-    splitRuns = [split_partition_array(runData.runs, cores, i, 1) for i in range(cores)]
+    splitRuns = [split_partition_array(runsToCompute, cores, i, 1) for i in range(cores)]
     if cores == 1:
-        # pResults = [boundTask(runData.runs)]
+        # pResults = [boundTask(runsToCompute)]
         pResults = map(boundTask, splitRuns)
     else:
         with mp.Pool(processes=cores, maxtasksperchild=1) as pool:
@@ -83,7 +86,7 @@ def main():
             pool.join()
 
     it = (run for runs in pResults for run in runs)
-    for run in runData.runs:
+    for run in runsToCompute:
         run.bestMetricResults = next(it)
 
     runData.version = get_version().to_dict()

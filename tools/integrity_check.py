@@ -31,6 +31,7 @@ def main():
     emptyFuncVals = list(filter(lambda run: not run.denoiserResult.func_vals, runData.runs))
     badResultMinimum = list(filter(lambda run: run.denoiserResult.func_vals and min(run.denoiserResult.func_vals) < run.denoiserResult.fun, runData.runs))
     funInFuncVals = list(filter(lambda run: run.denoiserResult.x_iters and run.denoiserResult.x not in run.denoiserResult.x_iters, runData.runs))
+    bestMetricResultsMissing = list(filter(lambda run: not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None, runData.runs))
 
     print(f'Runs ({len(dps)}) match totalRuns ({runData.totalRuns}): {runData.totalRuns == len(dps)}')
     print(f'Runs ({len(dps)}) match runs ({len(runData.runs)}): {len(runData.runs) == len(dps)}')
@@ -41,6 +42,7 @@ def main():
     print(f'Minimum is not fun but contained in func_vals: {len(badResultMinimum)}')
     print(f'fun not contained in func_vals: {len(funInFuncVals)}')
     print(f'Missing runs: {len(missing_ids)}')
+    print(f'Attribute bestMetricResults missing/None: {len(bestMetricResultsMissing)}')
 
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
