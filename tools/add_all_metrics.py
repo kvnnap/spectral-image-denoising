@@ -60,6 +60,7 @@ def main():
     parser.add_argument('--result', default='all_results.json', help='Result to load')
     parser.add_argument('--image-base', default='smb/images', help='Base path for the images to load')
     parser.add_argument('--output-result', default='all_metric_results.json', help='Output filename for results + metrics')
+    parser.add_argument('--recompute-all', default=False, action='store_true', help='Recompute all bestMetricResults, overwrite existing')
     parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum')
     args = parser.parse_args()
 
@@ -70,8 +71,8 @@ def main():
     print('Loading result')
     runData = load(resultPath)
 
-    # Only compute the ones that are missing
-    runsToCompute = [run for run in runData.runs if not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None]
+    # Choose if only compute the ones that are missing
+    runsToCompute = runData.runs if args.recompute_all else [run for run in runData.runs if not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None]
 
     print(f'Processing {len(runsToCompute)} runs out of {len(runData.runs)}')
     boundTask = partial(task, imageBase=args.image_base)

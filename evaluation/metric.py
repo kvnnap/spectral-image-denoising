@@ -172,7 +172,7 @@ def local_flip(ref, noisy, dpString):
                                         # save_ldrflip=args.save_ldrflip,
                                         # no_magma=args.no_magma
                                         )
-        score = np.mean(flip)
+        score = np.mean(flip).item()
     return score
 
 class MetricFactory:
