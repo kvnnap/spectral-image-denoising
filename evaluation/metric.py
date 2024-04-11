@@ -6,10 +6,10 @@ import torch
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import mean_squared_error as mse_fn
-from utils.image import get_channel_count
-from flip_torch.flip_loss import LDRFLIPLoss, HDRFLIPLoss
+from utils.image import get_channel_count, get_crop_image_border_slice
+from flip_torch.flip_loss import LDRFLIPLoss, HDRFLIPLoss, compute_start_stop_exposures
 from flip.data import HWCtoCHW
-from flip.flip_api import compute_ldrflip, compute_hdrflip
+from flip.flip_api import compute_exposure_params, compute_ldrflip, compute_hdrflip
 from flip.flip import set_start_stop_num_exposures
 
 def local_mse(ref, noisy, dpString):
@@ -98,12 +98,38 @@ def local_flip(ref, noisy, dpString):
     isGPU = torch.cuda.is_available()
     # pixels_per_degree = 0.30 * (1920 / 0.5313) * (np.pi / 180)
     pixels_per_degree = ppd
+    host_ref = ref
 
     if isGPU:
         ref = mem_image_to_cuda(ref, isLdr)
         noisy = mem_image_to_cuda(noisy, isLdr)
-        loss_fn = LDRFLIPLoss() if isLdr else HDRFLIPLoss()
-        flip_loss = loss_fn(noisy, ref, pixels_per_degree)
+
+        # HDR-FLIP expects nonnegative and non-NaN values in the input
+        if isLdr:
+            loss_fn = LDRFLIPLoss()
+            flip_loss = loss_fn(noisy, ref, pixels_per_degree)
+        else:
+            ref = torch.clamp(ref, 0, 65536.0)
+            start_exposure, stop_exposure = compute_start_stop_exposures(ref, 'aces', 0.85, 0.85)
+
+            # If inf, try to remove any black boders and recompute again
+            if torch.any(torch.isinf(stop_exposure)):
+                r, c = get_crop_image_border_slice(host_ref)
+
+                # Both below options have an affect on the score. Option 1 turns out to give better
+                # score since the black borders will be identical in both ref and noisy
+
+                # Option 1: Keep same picture size, just compute exposure from cropped ref image
+                ref_cropped = ref[:, :, r[0]:r[1], c[0]: c[1]]
+                start_exposure, stop_exposure = compute_start_stop_exposures(ref_cropped, 'aces', 0.85, 0.85)
+
+                # Option 2: Crop ref and noisy images and proceed with these instead
+                # ref = ref[:, :, r[0]:r[1], c[0]: c[1]]
+                # noisy = noisy[:, :, r[0]:r[1], c[0]: c[1]]
+                # start_exposure = stop_exposure = None
+
+            loss_fn = HDRFLIPLoss()
+            flip_loss = loss_fn(noisy, ref, pixels_per_degree, start_exposure=start_exposure, stop_exposure=stop_exposure)
         score = flip_loss.item()
     else:
         ref = mem_image_to_flip(ref)
@@ -114,7 +140,22 @@ def local_flip(ref, noisy, dpString):
             directory = './'
             # reference_filename = 'povray_reflect_caustics_8'
             # test_filename = 'povray_reflect_caustics_2'
-            start_exposure, stop_exposure, num_exposures = set_start_stop_num_exposures(ref)
+            start_exposure, stop_exposure = compute_exposure_params(ref)
+            
+            # If inf, try to remove any black boders and recompute again
+            if stop_exposure == float('inf'):
+                r, c = get_crop_image_border_slice(host_ref)
+
+                # Option 1: Keep same picture size, just compute exposure from cropped ref image
+                ref_cropped = ref[:, r[0]:r[1], c[0]: c[1]]
+                start_exposure, stop_exposure = compute_exposure_params(ref_cropped)
+
+                # Option 2: Crop ref and noisy images and proceed with these instead
+                # ref = ref[:, r[0]:r[1], c[0]: c[1]]
+                # noisy = noisy[:, r[0]:r[1], c[0]: c[1]]
+                # start_exposure = stop_exposure = None
+
+            start_exposure, stop_exposure, num_exposures = set_start_stop_num_exposures(ref, start_exposure, stop_exposure)
             flip, exposure_map = compute_hdrflip(ref,
                                         noisy,
                                         directory=directory,

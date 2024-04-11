@@ -223,3 +223,36 @@ def list_to_square_image(arr, pix_size=480):
 
 def interpolate_image_to_range(image, im_range=(0, 1)):
     return np.interp(image, (image.min(), image.max()), im_range)
+
+# returns slices only
+def get_crop_image_border_slice(image):
+    # Find the first and last rows where all values are zero
+    first_row = 0
+    last_row = image.shape[0]
+    for row in range(image.shape[0]):
+        if np.all(image[row, :] == 0):
+            first_row = row + 1
+        else:
+            break
+    for row in range(image.shape[0]-1, -1, -1):
+        if np.all(image[row, :] == 0):
+            last_row = row
+        else:
+            break
+    
+    # Find the first and last columns where all values are zero
+    first_col = 0
+    last_col = image.shape[1]
+    for col in range(image.shape[1]):
+        if np.all(image[:, col] == 0):
+            first_col = col + 1
+        else:
+            break
+    for col in range(image.shape[1]-1, -1, -1):
+        if np.all(image[:, col] == 0):
+            last_col = col
+        else:
+            break
+    
+    # Crop the image using the calculated indices
+    return ([first_row, last_row], [first_col, last_col])
