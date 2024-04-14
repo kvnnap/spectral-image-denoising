@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 import pywt
+from utils.array import sanitise
 from utils.image import *
 from utils.math import get_threshold_max
 from evaluation.denoiser import Denoiser
@@ -27,7 +28,7 @@ class WaveletDenoiser(Denoiser):
         return coeffs
     
     def recompose(self, coeffs):
-        filtered_img = list(map(lambda c: np.clip(pywt.waverec2(c, self.waveletName), 0, None), coeffs))
+        filtered_img = list(map(lambda c: sanitise(pywt.waverec2(c, self.waveletName)), coeffs))
         return merge_channels(filtered_img)
     
     # need to parameterise wavelet_name, level, masking type (soft, hard)

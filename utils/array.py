@@ -1,3 +1,4 @@
+import numpy as np
 
 # Partitions 'count' items in 'den' sections. 
 # 'start' and 'length' can be used to weigh differently
@@ -23,3 +24,8 @@ def is_sorted_ascending(arr):
 def are_items_unique(arr):
     return len(arr) == len(set(arr))
 
+def is_not_finite(x):
+    return not np.isfinite(x).all()
+
+def sanitise(x):
+    return np.clip(np.nan_to_num(x), 0, None)

@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 from evaluation.denoiser import Denoiser
+from utils.array import sanitise
 from utils.image import seperate_channels, merge_channels
 from utils.math import get_threshold_max
 
@@ -46,7 +47,7 @@ class FourierDenoiser(Denoiser):
 
         reconstructed_fft_image = mag * np.exp(1j * phase_spectrum)
         reconstructed_fft_image = np.transpose(reconstructed_fft_image, (2, 0, 1))
-        reconstructed_fft_image = list(map(lambda x: np.clip(np.fft.ifft2(np.fft.ifftshift(x)).real, 0, None), reconstructed_fft_image))
+        reconstructed_fft_image = list(map(lambda x: sanitise(np.fft.ifft2(np.fft.ifftshift(x)).real), reconstructed_fft_image))
         return merge_channels(reconstructed_fft_image)
     
     @staticmethod

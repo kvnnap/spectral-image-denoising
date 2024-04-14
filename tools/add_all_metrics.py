@@ -6,7 +6,7 @@ from functools import partial
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.array import split_partition_array
+from utils.array import is_not_finite, split_partition_array
 from utils.versioning import get_version
 from utils.serialisation import save, load
 from utils.image import set_base_path
@@ -72,7 +72,7 @@ def main():
     runData = load(resultPath)
 
     # Choose if only compute the ones that are missing
-    runsToCompute = runData.runs if args.recompute_all else [run for run in runData.runs if not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None]
+    runsToCompute = runData.runs if args.recompute_all else [run for run in runData.runs if not hasattr(run, 'bestMetricResults') or run.bestMetricResults is None or is_not_finite(list(run.bestMetricResults.values()))]
 
     print(f'Processing {len(runsToCompute)} runs out of {len(runData.runs)}')
     boundTask = partial(task, imageBase=args.image_base)
