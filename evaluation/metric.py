@@ -61,8 +61,10 @@ def local_hdrvdp3(ref, noisy, dpString):
     selector = { 
         'gray': 'luminance', 
         'gray_tm': 'luma-display',
+        'gray_aces_tm': 'luma-display',
         'rgb': 'rgb-native',
-        'rgb_tm': 'sRGB-display'
+        'rgb_tm': 'sRGB-display',
+        'rgb_aces_tm': 'sRGB-display'
     }
     s = selector[imgLoader]
     noisy = np.ascontiguousarray(noisy)

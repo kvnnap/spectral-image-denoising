@@ -38,7 +38,7 @@ def main():
     print('Grouping by denoiser_coeff')
     denDict = {}
     for run in runData.runs:
-        if run.denoiserParams.imageLoader not in ['gray', 'gray_tm']:
+        if run.denoiserParams.imageLoader not in ['gray', 'gray_tm', 'gray_aces_tm']:
             continue
         # Categorise depending on denoiser_coeff
         key = run.denoiserParams.get_value('denoiser_coeff')

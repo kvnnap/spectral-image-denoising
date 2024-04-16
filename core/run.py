@@ -2,7 +2,7 @@ class ParameterSpace:
     def __init__(self):
         self.name = 'unnamed'
         self.images = [] # each element is a tuple (ref, images)
-        self.imageLoaders = [] # gray, gray_tm, rgb, rgb_tm
+        self.imageLoaders = [] # gray, gray_tm, gray_aces_tm, rgb, rgb_tm, rgb_aces_tm
         self.metrics = [] # MSE, SSIM
         self.thresholds = [] # mult, soft, hard, garrote
         self.searchMethods = [] # naive, naive_descending, gp_minimize

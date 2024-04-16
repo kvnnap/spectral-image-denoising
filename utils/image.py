@@ -102,7 +102,19 @@ def tone_map(image_data):
     # Return the tone mapped pixel data
     return tone_mapped_data
 
-def load_image(path, gray = True, tm = True):
+def saturate(x):
+    return np.clip(x, 0.0, 1.0)
+
+def tone_map_aces(x):
+    x *= 0.6
+    a = 2.51
+    b = 0.03
+    c = 2.43
+    d = 0.59
+    e = 0.14
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e))
+
+def load_image(path, gray = True, tm = True, tm_fn = tone_map):
     # Select image format
     path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
@@ -110,7 +122,7 @@ def load_image(path, gray = True, tm = True):
     if (gray):
         image = convert_to_grayscale(image)
     if (tm):
-        image = alpha_correction_chain(tone_map(image))
+        image = alpha_correction_chain(tm_fn(image))
     return image
 
 def get_channel_count(image):
