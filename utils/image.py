@@ -114,15 +114,17 @@ def tone_map_aces(x):
     e = 0.14
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e))
 
-def load_image(path, gray = True, tm = True, tm_fn = tone_map):
+def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
     # Select image format
     path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
     image = load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
-    if (gray):
+    if gray:
         image = convert_to_grayscale(image)
-    if (tm):
-        image = alpha_correction_chain(tm_fn(image))
+    if tm:
+        image = tm_fn(image)
+        if gamma:
+            image = alpha_correction_chain(image)
     return image
 
 def get_channel_count(image):
@@ -143,9 +145,6 @@ def alpha_correction_chain(data):
     correction_data = np.array(data)
     correction_data = np.where(correction_data <= 0.0031308, 12.92*correction_data, 1.055*np.power(correction_data, encoding_gamma) - 0.055)
     return correction_data
-
-def tone_alpha_map(image):
-    return alpha_correction_chain(tone_map(image)) if image is not None else None
 
 def float_image_to_uint(data):
     # Clip the pixel values to the range [0, 255] and convert to unsigned 8-bit integers

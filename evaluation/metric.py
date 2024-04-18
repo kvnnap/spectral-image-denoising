@@ -58,15 +58,13 @@ ppd = h.hdrvdp_pix_per_deg(24.0, matlab.double([1920, 1080]), 0.30)
 #     print('oops')
 def local_hdrvdp3(ref, noisy, dpString):
     imgLoader = dpString.imageLoader.strip().lower()
-    selector = { 
-        'gray': 'luminance', 
-        'gray_tm': 'luma-display',
-        'gray_aces_tm': 'luma-display',
-        'rgb': 'rgb-native',
-        'rgb_tm': 'sRGB-display',
-        'rgb_aces_tm': 'sRGB-display'
-    }
-    s = selector[imgLoader]
+
+    s = None
+    if imgLoader.startswith('gray'):
+        s = 'luma-display' if '_tm' in imgLoader else 'luminance'
+    elif imgLoader.startswith('rgb'):
+        s = 'sRGB-display' if '_tm' in imgLoader else 'rgb-native'
+        
     noisy = np.ascontiguousarray(noisy)
     ref = np.ascontiguousarray(ref)
     noisy = matlab.single(noisy) if noisy.dtype == np.float32 else matlab.double(noisy)
@@ -96,7 +94,7 @@ def local_flip(ref, noisy, dpString):
     if noisy.dtype != np.float32:
         noisy = noisy.astype(np.float32)
     imgLoader = dpString.imageLoader.strip().lower()
-    isLdr = imgLoader.endswith('_tm')
+    isLdr = '_tm' in imgLoader
     isGPU = torch.cuda.is_available()
     # pixels_per_degree = 0.30 * (1920 / 0.5313) * (np.pi / 180)
     pixels_per_degree = ppd

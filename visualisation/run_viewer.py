@@ -1,20 +1,16 @@
 import tkinter as tk
 from tkinter import filedialog
+from evaluation.image_loader import ImageLoaderDescriptor
 from visualisation.result_image_processor import ResultImageProcessor
 from visualisation.result_plot import ResultPlot
 from utils.image import save_image
-from utils.image import interpolate_image_to_range, tone_alpha_map
+from utils.image import interpolate_image_to_range, tone_map, tone_map_aces, alpha_correction_chain
 
 # parent is the tk sheet
 class RunViewer():
     def __init__(self, parent, run):
         dp = run.denoiserParams
         
-        self.imgLoaderStr = dp.imageLoader
-        toneMapped = self.imgLoaderStr.endswith('_tm')
-        if toneMapped:
-            self.imgLoaderStr = self.imgLoaderStr[:-3]
-
         self.id = dp.id
         self.run = run
         self.resImageProc = ResultImageProcessor(run) #run.denoiserResult.func_vals
@@ -31,14 +27,28 @@ class RunViewer():
 
         self.resultPlot = ResultPlot(self)
 
-        self.toneMap = tk.IntVar(value=toneMapped)
+        self.imgLoaderDesc = ImageLoaderDescriptor().fromString(dp.imageLoader)
+        self.toneMap = tk.IntVar(value=self.imgLoaderDesc.isToneMapped())
         self.toneMapCheckbox = tk.Checkbutton(self.subWindow, text='Tone Map', variable=self.toneMap, command=self.tone_map)
         self.toneMapCheckbox.pack()
 
         # PP means post proc
+        checkboxFrame = tk.Frame(self.subWindow)
+        checkboxFrame.pack()
         self.toneMapPP = tk.IntVar()
-        self.toneMapPPCheckbox = tk.Checkbutton(self.subWindow, text='Tone Map PP', variable=self.toneMapPP, command=self.tone_map_pp)
-        self.toneMapPPCheckbox.pack()
+        self.toneMapPPCheckbox = tk.Checkbutton(checkboxFrame, text='Reinhard PP', variable=self.toneMapPP)
+        self.toneMapPPCheckbox.pack(side='left')
+
+        self.toneMapAcesPP = tk.IntVar()
+        self.toneMapAcesPPCheckbox = tk.Checkbutton(checkboxFrame, text='Aces PP', variable=self.toneMapAcesPP)
+        self.toneMapAcesPPCheckbox.pack(side='left')
+
+        self.gammaPP = tk.IntVar()
+        self.gammaPPCheckbox = tk.Checkbutton(checkboxFrame, text='Gamma PP', variable=self.gammaPP)
+        self.gammaPPCheckbox.pack(side='left')
+
+        self.applyPPButton = tk.Button(checkboxFrame, text='Apply', command=self.tone_map_pp)
+        self.applyPPButton.pack(side='left')
 
         self.showCoeff = tk.IntVar()
         self.showCoeffButton = tk.Checkbutton(self.subWindow, text='Show Coefficients', variable=self.showCoeff, command=self.show_coeffs)
@@ -71,16 +81,27 @@ class RunViewer():
         self.flipLabel = tk.Label(self.subWindow, text='FLIP: 0')
         self.flipLabel.pack()
 
-        self.uiCollection = [self.toneMapCheckbox, self.toneMapPPCheckbox, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
+        self.uiCollection = [self.toneMapCheckbox, self.toneMapPPCheckbox, self.toneMapAcesPPCheckbox, self.gammaPPCheckbox, self.applyPPButton, self.showCoeffButton, self.applyButton, self.applyBgButton, self.changeRefImageButton, self.saveImagesButton]
 
         self.plot()
+
+    def applyPP(self, image):
+        if image is None:
+            return None
+        if self.toneMapPP.get():
+            image = tone_map(image)
+        if self.toneMapAcesPP.get():
+            image = tone_map_aces(image)
+        if self.gammaPP.get():
+            image = alpha_correction_chain(image)
+        return image
 
     def plot(self):
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
-        if self.toneMapPP.get():
-            image = tone_alpha_map(image)
-            denImage = tone_alpha_map(denImage)
+        # Post proc tone mapping
+        image = self.applyPP(image)
+        denImage = self.applyPP(denImage)
         if (self.backImage is not None):
             image = self.backImage + image
             denImage = self.backImage + denImage
@@ -107,9 +128,8 @@ class RunViewer():
         self.parentResultViewer.toggle_loading()
 
     def tone_map(self):
-        imgLoaderStr = self.imgLoaderStr 
-        if self.toneMap.get():
-            imgLoaderStr = imgLoaderStr + '_tm'
+        self.imgLoaderDesc.setToneMapped(self.toneMap.get())
+        imgLoaderStr = self.imgLoaderDesc.toString() 
         self.resImageProc.update_image_loader(imgLoaderStr)
         self.plot()
 
@@ -146,9 +166,8 @@ class RunViewer():
         self.toggle_loading()
         (image, denImage, coeffImage) = self.resImageProc.get(self.showCoeff.get(), self.currentCoeffId)
         # Post proc tone mapping
-        if self.toneMapPP.get():
-            image = tone_alpha_map(image)
-            denImage = tone_alpha_map(denImage)
+        image = self.applyPP(image)
+        denImage = self.applyPP(denImage)
         dp = self.run.denoiserParams
         #full_name = f'{dp.name}-{dp.id}-{dp.denoiser["name"]}_{dp.denoiser["coefficientLength"]}-{dp.search}-{dp.thresholding}-{dp.imageLoader}-{dp.metric}-{dp.iterations}'
         name = f'{dp.name}-{dp.id}'

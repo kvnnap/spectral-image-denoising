@@ -44,10 +44,14 @@ The options we're giving below are for bounded variables (which is what we're us
         "imageLoaders":[
             "gray",
             "gray_tm",
+            "gray_tm_nogamma",
             "gray_aces_tm",
+            "gray_aces_tm_nogamma",
             "rgb",
             "rgb_tm",
-            "rgb_aces_tm"
+            "rgb_tm_nogamma",
+            "rgb_aces_tm",
+            "rgb_aces_tm_nogamma"
         ],
         "metrics": [
             "mse",

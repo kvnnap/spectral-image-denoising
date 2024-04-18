@@ -21,10 +21,14 @@ noisy = load_image('smb/images/povray_reflect_caustics_2.exr', True, False)
 selector = { 
     'gray': 'luminance', 
     'gray_tm': 'luma-display',
+    'gray_tm_nogamma': 'luma-display',
     'gray_aces_tm': 'luma-display',
+    'gray_aces_tm_nogamma': 'luma-display',
     'rgb': 'rgb-native',
     'rgb_tm': 'sRGB-display',
-    'rgb_aces_tm': 'sRGB-display'
+    'rgb_tm_nogamma': 'sRGB-display',
+    'rgb_aces_tm': 'sRGB-display',
+    'rgb_aces_tm_nogamma': 'sRGB-display'
 }
 s = selector['gray']
 
