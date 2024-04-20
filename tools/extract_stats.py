@@ -142,11 +142,15 @@ def main():
     parser = argparse.ArgumentParser(description=f'Generate a matrix for top x% results.\n{versionString}')
     parser.add_argument('--result', default='all_results.json', help='The result to load')
     parser.add_argument('--percentages', default='5,10,15,25', help='The top percentages (comma separated) of filtered results that will be considered')
+    parser.add_argument('--image-loader', default='gray_tm', help='Which image loader will be considered (tabbed)')
     parser.add_argument('--combinations', default=0, type=int, help='The largest selection of comibnations. 2 will give pair combinations from catsVar')
+    parser.add_argument('--use-best-metrics', default=False, action='store_true', help='Sort by best metrics. There will be no filtering occuring using one metric')
     parser.add_argument('--output', default='stats', help='Output file name without extension')
 
     args = parser.parse_args()
     topPercentages = list(map(int, args.percentages.split(',')))
+    useBestMetrics = args.use_best_metrics
+    imageLoader = args.image_loader
     combsLength = args.combinations
     outputName = args.output
 
@@ -155,17 +159,6 @@ def main():
     resultPath = args.result
     runData = load(resultPath)
     
-    # Generate rowData and sort by score
-    print('Processing data')
-    rowData = RowData(runData)
-    scoreIndex = RowData.HEADER.index('score')
-    rowData.sort_row_data(scoreIndex)
-
-    catsConst = lambda c: {
-        'imageLoader': [ 'gray_tm' ], 
-        'metric': [ c ]
-    }
-
     catsVar = {
         'ref-noisy': [], 
         'thresholding': [],
@@ -173,7 +166,22 @@ def main():
         'denoiser_coeff': []
     }
 
-    results = [compute_stats(rowData, catsConst(k), catsVar, p, combsLength) for p in topPercentages for k in ['flip', 'hdrvdp3', 'mse', 'psnr', 'ssim']]
+    # Generate rowData and sort by score
+    print('Processing data')
+    rowData = RowData(runData)
+    if useBestMetrics:
+        rowData.sort_row_data_metric()
+        catsConst = { 'imageLoader': [ imageLoader ] }
+        results = [compute_stats(rowData, catsConst, catsVar, p, combsLength) for p in topPercentages]
+        outputName += '_bestMetrics'
+    else:
+        scoreIndex = RowData.HEADER.index('score')
+        rowData.sort_row_data(scoreIndex)
+        catsConst = lambda c: {
+            'imageLoader': [ imageLoader ], 
+            'metric': [ c ]
+        }
+        results = [compute_stats(rowData, catsConst(k), catsVar, p, combsLength) for p in topPercentages for k in ['flip', 'hdrvdp3', 'mse', 'psnr', 'ssim']]
 
     print('Saving results')
     save(f'{outputName}.json', results, False)
