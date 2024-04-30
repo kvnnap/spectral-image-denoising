@@ -207,6 +207,11 @@ docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-p
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/image_convert.py --image smb/seeded-images --image-loader gray_aces_tm --destination smb/seeded-images-png
 ```
 
+## Best scorers extraction for samples generation (for confidence interval) example
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/extract_top_config.py --result smb/exp_1b/result_gray_all_merged.json --image-loaders gray_aces_tm --metrics hdrvdp3,mse,psnr,ssim --out-config smb/exp_1c/config_top_runs.json
+```
+
 ## Matlab hdrvdp3 integration
 
 See matlab folder for the scripts that were used to generate the hdrpy package/module
