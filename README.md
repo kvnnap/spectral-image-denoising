@@ -202,6 +202,11 @@ docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-p
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/cosine_similarity_interactive.py --result res.json
 ```
 
+## PNG image extraction from EXR
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/image_convert.py --image smb/seeded-images --image-loader gray_aces_tm --destination smb/seeded-images-png
+```
+
 ## Matlab hdrvdp3 integration
 
 See matlab folder for the scripts that were used to generate the hdrpy package/module
