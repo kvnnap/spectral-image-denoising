@@ -9,7 +9,11 @@ def load(file_name):
         return jsonpickle.decode(fp.read())
     
 def print_obj(obj):
-     print(f"{jsonpickle.encode(obj, unpicklable=False)}")
+    print(f"{jsonpickle.encode(obj, unpicklable=False)}")
 
 def to_string_obj(obj):
-     return f"{jsonpickle.encode(obj, unpicklable=False)}"
+    return f"{jsonpickle.encode(obj, unpicklable=False)}"
+
+def save_text(file_name, text, write_mode='w'):
+    with open(file_name, write_mode) as fp:
+        fp.write(text)
