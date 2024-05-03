@@ -206,6 +206,20 @@ docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-p
 ```bash
 docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/image_convert.py --image smb/seeded-images --image-loader gray_aces_tm --destination smb/seeded-images-png
 ```
+## Runs image extraction to either EXR/PNG
+```json
+"args": [
+    "--result", "smb/exp_1c/runs_merged.json",
+    "--image-base", "smb/seeded-images", 
+    "--formats", "png", 
+    "--pre-image-loader", "",
+    "--post-procs", "", 
+    "--out-dir", "offline/paper-data/runs-denoised"
+]
+```
+```bash
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/generate_run_images.py <args-above>
+```
 
 ## Best scorers extraction for samples generation (for confidence interval) example
 ```bash
