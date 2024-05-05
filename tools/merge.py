@@ -26,18 +26,17 @@ def main():
     runData = load(resultPath[0])
     
     if mergeSplitRuns:
-        idSet = {r.denoiserParams.id for r in runData.runs}
+        runMap = {r.denoiserParams.id : r for r in runData.runs}
         for rPath in resultPath[1:]:
-            runData.runs.sort(key=lambda r: r.denoiserParams.id)
             otherRunData = load(rPath)
             for otherRunDatum in otherRunData.runs:
                 otherId = otherRunDatum.denoiserParams.id
-                if otherId in idSet:
-                    if not runData.runs[otherId].denoiserParams.compare(otherRunDatum.denoiserParams):
+                if otherId in runMap.keys():
+                    if not runMap[otherId].denoiserParams.compare(otherRunDatum.denoiserParams):
                         raise ValueError(f"Run with id: {otherId} not matching")
                 else:
                     runData.runs.append(otherRunDatum)
-                idSet.add(otherId)
+                    runMap[otherId] = otherRunDatum
     else:
         # Temporary solution, merge results in one view
         # IMPORTANT: NOT ALL INFO FROM BOTH RUNS IS PRESERVED
