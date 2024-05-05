@@ -33,7 +33,7 @@ def main():
             for otherRunDatum in otherRunData.runs:
                 otherId = otherRunDatum.denoiserParams.id
                 if otherId in idSet:
-                    if not runData.runs[otherId].compare(otherRunDatum.denoiserParams):
+                    if not runData.runs[otherId].denoiserParams.compare(otherRunDatum.denoiserParams):
                         raise ValueError(f"Run with id: {otherId} not matching")
                 else:
                     runData.runs.append(otherRunDatum)
