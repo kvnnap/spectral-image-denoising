@@ -16,14 +16,17 @@ from curvelops.plot import (
 class CurveletDenoiser(Denoiser):
     def __init__(self, config):
         super().__init__()
+        self.computeSectors = config['sectors'] if 'sectors' in config else False
         
     @staticmethod
-    def get_fdct_struct(c_str, x, thresholding):
+    def get_fdct_struct(c_str, x, thresholding, computeSectors):
+        sectorCounter = 0
         c_copy = copy.deepcopy(c_str)
         for c_struct in c_copy:
             for i, s in enumerate(c_struct):
                 for j in range(len(s)):
-                    c_struct[i][j] = thresholding.fn(c_struct[i][j], x[i])
+                    c_struct[i][j] = thresholding.fn(c_struct[i][j], x[sectorCounter] if computeSectors else x[i])
+                    sectorCounter += 1
         return c_copy
     
     def decompose(self, image, nbscales = None):
@@ -42,17 +45,25 @@ class CurveletDenoiser(Denoiser):
         FDCT, c_struct = self.decompose(image)
 
         measure = []
-        for i in range(len(c_struct[0])):
-            wedges_flattened = []
-            for j in range(len(c_struct[0][i])):
-                for c in range(len(c_struct)):
-                    wedges_flattened.extend(c_struct[c][i][j].flatten())
-            measure.append(get_threshold_max(wedges_flattened))
+        if self.computeSectors:
+            for i in range(len(c_struct[0])):
+                for j in range(len(c_struct[0][i])):
+                    wedges_flattened = []
+                    for c in range(len(c_struct)):
+                        wedges_flattened.extend(c_struct[c][i][j].flatten())
+                    measure.append(get_threshold_max(wedges_flattened))
+        else:
+            for i in range(len(c_struct[0])):
+                wedges_flattened = []
+                for j in range(len(c_struct[0][i])):
+                    for c in range(len(c_struct)):
+                        wedges_flattened.extend(c_struct[c][i][j].flatten())
+                measure.append(get_threshold_max(wedges_flattened))
 
         space = denoiserParams.thresholding.get_space(measure)
 
         def objective_function(x):
-            c_copy = CurveletDenoiser.get_fdct_struct(c_struct, x, denoiserParams.thresholding)
+            c_copy = CurveletDenoiser.get_fdct_struct(c_struct, x, denoiserParams.thresholding, self.computeSectors)
             score = denoiserParams.metric(ref_image, self.recompose(FDCT, c_copy), dpString)
             return score
 
@@ -61,7 +72,7 @@ class CurveletDenoiser(Denoiser):
     
     def get_image(self, image, coeff, thresholding):
         FDCT, c_struct = self.decompose(image)
-        c_struct = CurveletDenoiser.get_fdct_struct(c_struct, coeff, thresholding)
+        c_struct = CurveletDenoiser.get_fdct_struct(c_struct, coeff, thresholding, self.computeSectors)
         return self.recompose(FDCT, c_struct)
     
     def get_curve_ceoff_image(self, image, coeff, thresholding):
@@ -70,7 +81,7 @@ class CurveletDenoiser(Denoiser):
         image = image[:, :, 0]
         #image = image.T
         FDCT, c_struct = self.decompose(image)
-        c_struct = CurveletDenoiser.get_fdct_struct(c_struct, coeff, thresholding)
+        c_struct = CurveletDenoiser.get_fdct_struct(c_struct, coeff, thresholding, self.computeSectors)
         c_struct = c_struct[0]
 
         rows, cols = 2, 3

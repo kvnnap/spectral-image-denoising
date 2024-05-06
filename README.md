@@ -75,7 +75,8 @@ The options we're giving below are for bounded variables (which is what we're us
                 "name": "minimize",
                 "method": [ // L-BFGS-B is default if not method is given
                     "Nelder-Mead", "L-BFGS-B", "TNC", "SLSQP", "Powell", "trust-constr", "COBYLA"
-                ]
+                ],
+                "x": [ [1,4,0,1] ] // Put starting coeffs here
             }
         ],
         "iterations": [
@@ -107,7 +108,8 @@ The options we're giving below are for bounded variables (which is what we're us
                 ]
             },
             {
-                "name": "curvelet" // curvelet has no additional config yet
+                "name": "curvelet", // curvelet - if sectors true will compute ALL coefficients. Default is false (Which computes only the circular ones)
+                "sectors": [ true ] 
             }
         ]
     },

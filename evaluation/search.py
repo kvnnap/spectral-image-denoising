@@ -41,9 +41,18 @@ def gp_minimize_wrapper(fn, space, n_calls):
     r = gp_minimize(fn, space, n_calls=n_calls)
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
-def minimize_wrapper(method_name, start, fn, space, n_calls):
+def minimize_wrapper(method_name, start, xStart, fn, space, n_calls):
     bounds = [(s.low, s.high) for s in space]
-    x0 = [np.mean(b) if start == 'mean' else np.random.uniform(*b) for b in bounds]
+    if xStart is None:
+        x0 = [np.mean(b) if start == 'mean' else np.random.uniform(*b) for b in bounds]
+    else:
+        if len(xStart) != len(bounds):
+            raise ValueError(f"Invalid initial starting coefficients 'x' length. Expected {len(bounds)}, actual {len(xStart)}")
+        for i in range(len(xStart)):
+            if xStart[i] < bounds[i][0] or xStart[i] > bounds[i][1]:
+                raise ValueError(f"Provided 'x[{i}]={xStart[i]}' is out of bounds {bounds[i]}")
+        x0 = xStart
+
     results = []
     def callback(intermediate_result):
         if isinstance(intermediate_result, spo.OptimizeResult):
@@ -88,6 +97,7 @@ class SearchFactory:
         elif (name == "minimize"):
             method_name = search_config['method'].strip().lower() if 'method' in search_config else None
             start = search_config['start'].strip().lower() if 'start' in search_config else 'mean'
-            return partial(minimize_wrapper, method_name, start)
+            x = search_config['x'] if 'x' in search_config else None
+            return partial(minimize_wrapper, method_name, start, x)
         else:
             raise ValueError(f"Invalid search name {search_config['name']}")

@@ -12,7 +12,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/evaluation/run.py",
-            "args": ["--result", "result.json", "--image-base", "smb/images", "--cores", "1"],
+            "args": ["--result", "result.json", "--image-base", "smb/seeded-images", "--cores", "1"],
             "justMyCode": true
         },
         {
@@ -20,7 +20,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/visualisation/run.py",
-            "args": ["--result", "result.json", "--image-base", "smb/images"],
+            "args": ["--result", "result.json", "--image-base", "smb/seeded-images"],
             "justMyCode": true
         }
     ]
