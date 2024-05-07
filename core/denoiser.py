@@ -1,5 +1,7 @@
+import copy
+
+from utils.array import hash_floats
 from utils.string import extract_file_name
-from utils.serialisation import to_string_obj
 
 class DenoiserRunParamsString:
     def __init__(self, id, name, pairImage, imageLoader, metric, thresholding, search, iterations, denoiser, sample):
@@ -26,7 +28,10 @@ class DenoiserRunParamsString:
         elif key == 'denoiser_coeff':
             return DenoiserRunParamsString.obj_config_to_str(self.denoiser)
         elif key == 'search':
-            return DenoiserRunParamsString.obj_config_to_str(self.search)
+            search = copy.deepcopy(self.search)
+            if 'x' in search:
+                search['x'] = hash_floats(search['x'])[:8]
+            return DenoiserRunParamsString.obj_config_to_str(search)
         elif key == 'sample':
             return self.sample if 'sample' in self.__dict__ else 0
         elif key in self.__dict__:

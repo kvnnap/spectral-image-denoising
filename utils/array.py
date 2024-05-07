@@ -1,3 +1,5 @@
+import hashlib
+import struct
 import numpy as np
 
 # Partitions 'count' items in 'den' sections. 
@@ -29,3 +31,10 @@ def is_not_finite(x):
 
 def sanitise(x):
     return np.clip(np.nan_to_num(x), 0, None)
+
+def hash_floats(float_list):
+    # Convert floats to bytes
+    float_bytes = b''.join(struct.pack('f', f) for f in float_list)
+    # Hash the bytes
+    hash_value = hashlib.sha256(float_bytes).hexdigest()
+    return hash_value
