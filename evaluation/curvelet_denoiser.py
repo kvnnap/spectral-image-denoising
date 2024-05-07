@@ -115,10 +115,13 @@ class CurveletDenoiser(Denoiser):
         # Optimisation to avoid decomposing the image again, we only need a look-alike structure
         c_struct = [[np.zeros(s) for s in shape] for shape in FDCT.shapes]
 
+        sectorCounter = 0
         for scale_index, scale in enumerate(c_struct):
             for wedge_index in range(len(scale)):
                 # c_struct[scale_index][wedge_index] = np.full_like(c_struct[scale_index][wedge_index], count)
-                c_struct[scale_index][wedge_index] = np.full((1, 1), complex(coeff[scale_index]))
+                c_index = sectorCounter if self.computeSectors else scale_index
+                c_struct[scale_index][wedge_index] = np.full((1, 1), complex(coeff[c_index]))
+                sectorCounter += 1
                 #c_struct[scale_index][wedge_index] = count
 
         plt.ioff()
