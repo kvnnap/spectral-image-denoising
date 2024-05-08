@@ -41,10 +41,18 @@ def gp_minimize_wrapper(fn, space, n_calls):
     r = gp_minimize(fn, space, n_calls=n_calls)
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
+def gen_num_in_bound(start, bound):
+    if start == 'mean':
+        return np.mean(bound)
+    elif start == 'normal':
+        return np.clip(np.random.normal(np.mean(bound), np.abs(bound[1] - bound[0]) / (2.0 * 5.0)), *bound)
+    else:
+        return np.random.uniform(*bound)
+
 def minimize_wrapper(method_name, start, xStart, fn, space, n_calls):
     bounds = [(s.low, s.high) for s in space]
     if xStart is None:
-        x0 = [np.mean(b) if start == 'mean' else np.random.uniform(*b) for b in bounds]
+        x0 = [gen_num_in_bound(start, b) for b in bounds]
     else:
         if len(xStart) != len(bounds):
             raise ValueError(f"Invalid initial starting coefficients 'x' length. Expected {len(bounds)}, actual {len(xStart)}")
