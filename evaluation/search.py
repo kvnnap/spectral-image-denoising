@@ -42,10 +42,13 @@ def gp_minimize_wrapper(fn, space, n_calls):
     return Result(r.x, r.x_iters, r.fun.item(), r.func_vals.tolist())
 
 def gen_num_in_bound(start, bound):
-    if start == 'mean':
+    frags = start.split('_')
+    name = frags[0]
+    if name == 'mean':
         return np.mean(bound)
-    elif start == 'normal':
-        return np.clip(np.random.normal(np.mean(bound), np.abs(bound[1] - bound[0]) / (2.0 * 5.0)), *bound)
+    elif name == 'normal':
+        stdDev = float(frags[1]) if len(frags) > 1 else 5.0
+        return np.clip(np.random.normal(np.mean(bound), np.abs(bound[1] - bound[0]) / (2.0 * stdDev)), *bound)
     else:
         return np.random.uniform(*bound)
 
