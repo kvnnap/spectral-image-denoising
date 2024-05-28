@@ -23,7 +23,7 @@ def main():
     parser.add_argument('--result', default='offline/smb/exp_1b/result_gray_all_merged.json', help='The result to load')
     parser.add_argument('--image-loaders', default='gray_aces_tm_nogamma', help='Which image loaders will be considered (comma separated) (tabbed)')
     parser.add_argument('--metrics', default='', help='Metrics (comma separated) (tabbed)')
-    parser.add_argument('--use-best-metrics', default=True, action='store_true', help='Sort by best metrics. There will be no filtering occuring using one metric')
+    parser.add_argument('--use-best-metrics', action='store_true', help='Sort by best metrics. There will be no filtering occuring using one metric')
     parser.add_argument('--out-table', default='offline/smb/exp_1c/config_top_runs_gray_aces_tm_ng_bm.csv', help='The config produced for running the samples')
     args = parser.parse_args()
 

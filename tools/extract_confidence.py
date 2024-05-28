@@ -14,6 +14,9 @@ from utils.serialisation import load, save
 from visualisation.row_data import RowData
 from evaluation.run import Run
 
+def format(x):
+    return f'{x:.6e}'
+
 def compute_stats(scores, z = 2.0):
     n = len(scores)
     mean = np.mean(scores)
@@ -24,9 +27,9 @@ def compute_stats(scores, z = 2.0):
     step = step.item()
     return {
         'samples': n,
-        'mean': mean,
-        'step': step,
-        'interval': (mean - step, mean + step)
+        'mean': format(mean),
+        'step': format(step),
+        'interval': (format(mean - step), format(mean + step))
     }
 
 def main():
