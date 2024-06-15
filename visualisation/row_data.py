@@ -62,13 +62,12 @@ class RowData():
         
         idIndex = RowData.HEADER.index('id')
 
-        # Ensure runs are sorted by id
-        runs = sorted(self.runData.runs, key=lambda r: r.denoiserParams.id)
+        runsIdDict = {run.denoiserParams.id : run for run in self.runData.runs}
 
         def cmp(r1, r2):
             r = [r1, r2]
             id = [x[idIndex] for x in r]
-            run = [runs[i] for i in id]
+            run = [runsIdDict[i] for i in id]
             # Compute relative scores
             div = [[v[0] / v[1] if v[1] > 0 else v[1] / v[0] for v in r.bestMetricResults.values()] for r in run]
             # Count the metrics that improved

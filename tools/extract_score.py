@@ -40,6 +40,7 @@ def main():
     metricIndex = RowData.HEADER.index('metric')
     denIndex = RowData.HEADER.index('denoiser_coeff')
     thresIndex = RowData.HEADER.index('thresholding')
+    timeIndex = RowData.HEADER.index('time')
 
     rowData = RowData(runData)
     if args.use_best_metrics:
@@ -107,7 +108,10 @@ def main():
 
     # Generate detailed tables
     
-    header = ['scene', 'metric', 'score', 'denoiser', 'threshold']
+    # Alter below two arrays to get other columns in data
+    header = ['scene', 'metric', 'score', 'denoiser', 'threshold', 'time']
+    dataIndices = [metricIndex, scoreIndex, denIndex, thresIndex, timeIndex]
+
     table = [ header ]
     for scene in filterDict['ref-noisy']:
         #sRuns = [r for r in runData.runs if r.denoiserParams.]
@@ -118,12 +122,12 @@ def main():
         # table = [ header ]
         for row in sceneRowData:
             data = [ mappedName ]
-            for index in [metricIndex, scoreIndex, denIndex, thresIndex]:
+            for index in dataIndices:
                 if index == scoreIndex:
                     metric = row[metricIndex]
                     data.append(CONV[metric](row[scoreIndex]))
                 else:
-                    data.append(row[index])
+                    data.append(str(row[index]))
             table.append(data)
 
     tables.append(table)
