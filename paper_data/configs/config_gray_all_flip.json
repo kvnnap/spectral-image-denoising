@@ -1,0 +1,106 @@
+[
+    {
+        "py/object": "core.run.ParameterSpace",
+	    "name": "p_exp_1_gray_all",
+        "images": [
+            {
+                "py/tuple": [
+                    "caustic_glass_caustics_8.exr",
+                    [
+                        "caustic_glass_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "povray_dice_caustics_8.exr",
+                    [
+                        "povray_dice_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "povray_cup_caustics_8.exr",
+                    [
+                        "povray_cup_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "povray_reflect_caustics_8.exr",
+                    [
+                        "povray_reflect_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "povray_test_caustics_8.exr",
+                    [
+                        "povray_test_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "torus_caustics_8.exr",
+                    [
+                        "torus_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "veach_bidir_caustics_8.exr",
+                    [
+                        "veach_bidir_caustics_2.exr"
+                    ]
+                ]
+            },
+            {
+                "py/tuple": [
+                    "water_caustic_caustics_8.exr",
+                    [
+                        "water_caustic_caustics_2.exr"
+                    ]
+                ]
+            }
+        ],
+    	"imageLoaders": [
+            "gray",
+            "gray_tm"
+    	],
+        "metrics": [
+            "flip"
+        ],
+        "thresholds": [
+            "mult",
+            "hard",
+            "soft",
+            "garrote"
+        ],
+        "searchMethods": [
+            "naive",
+            "naive_descending",
+            "gp_minimize",
+            {
+                "name": "minimize",
+                "method": [ "Nelder-Mead", "L-BFGS-B", "SLSQP", "Powell", "trust-constr", "COBYLA" ]
+            }
+        ],
+        "iterations": [
+            100
+        ],
+        "denoisers": [
+            "fourier",
+            "wavelet",
+            {
+                "name": "wavelet",
+                "waveletName": [ "sym20" ]
+            },
+	        "curvelet"
+        ]
+    }
+]

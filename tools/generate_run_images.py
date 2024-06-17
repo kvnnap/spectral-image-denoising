@@ -1,14 +1,15 @@
 import sys
 import os
 import argparse
+import time
 from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.image import alpha_correction_chain, save_image_as_png, save_image_as_exr, set_base_path, tone_map, tone_map_aces
 from utils.versioning import get_version
-from utils.serialisation import load
-from utils.string import comma_to_list, get_prefix
+from utils.serialisation import load, save_text
+from utils.string import comma_to_list, get_prefix, tables_to_csv
 from visualisation.result_image_processor import ResultImageProcessor
 from utils.constants import NAMEMAP
 
@@ -21,6 +22,7 @@ def main():
     parser.add_argument('--pre-image-loader', default='', help='Leave blank to use original one from result')
     parser.add_argument('--post-procs', default='', help='Comma separated aces_tm,tm,gamma')
     parser.add_argument('--formats', default='exr', help='Comma separated exr,png')
+    parser.add_argument('--info-table', default='info_table.csv', help='File name for info table, stored in --out-dir')
     parser.add_argument('--out-dir', default='', help='Directory where to save images')
     args = parser.parse_args()
     set_base_path(args.image_base)
@@ -58,6 +60,18 @@ def main():
     print(descString)
 
     runData = load(args.result)
+    infoTable = ['Name', 'denoiser', 'Time', 'Time Seconds']
+
+    def getSceneName(run):
+        dp = run.denoiserParams
+        sceneName = get_prefix(dp.pairImage[0], -2)
+        if sceneName in NAMEMAP:
+            sceneName = NAMEMAP[sceneName]
+        return sceneName
+
+    #runData.runs.sort(key=lambda r: r.denoiserParams.get_value('denoiser_coeff'))
+    # runData.runs.sort(key=lambda r: f'{getSceneName(r)}_{r.denoiserParams.metric}')
+    runData.runs.sort(key=lambda r: f'{r.denoiserParams.get_value("ref-noisy")}_{r.denoiserParams.metric}')
 
     for i, run in enumerate(runData.runs):
         print(f'\rProgress {i + 1}/{len(runData.runs)}', end='', flush=True)
@@ -65,17 +79,19 @@ def main():
 
         # Gen filename
         dp = run.denoiserParams
-        sceneName = get_prefix(dp.pairImage[0], -2)
-        if sceneName in NAMEMAP:
-            sceneName = NAMEMAP[sceneName]
+        sceneName = getSceneName(run)
         fileName = f'{sceneName}_{dp.metric}_{dp.id}'
         destFilePath = str(Path(args.out_dir).joinpath(fileName))
 
         # alter image loader to apply coeffs on
         if args.pre_image_loader:
             rip.update_image_loader(args.pre_image_loader)
+        start = time.perf_counter_ns()
         (_, den, _) = rip.get(False)
-
+        finish = time.perf_counter_ns()
+        elapsed = (finish - start) * 1e-9
+        infoTable.append([fileName, dp.get_value('denoiser_coeff'), str(elapsed), f'{elapsed:.2f}'])
+        
         # Post proc
         for pp in postProc:
             den = ppMap[pp](den)
@@ -84,6 +100,8 @@ def main():
         for format in formats:
             formatMap[format](den, destFilePath)
 
+    # Save infoTable
+    save_text(str(Path(args.out_dir).joinpath(args.info_table)), tables_to_csv([infoTable]))
     print('\nCompleted')
 
 # The following code block will only execute if this script is run directly,

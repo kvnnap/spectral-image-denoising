@@ -10,9 +10,9 @@ NAMEMAP = {
     'water_caustic': 'water',
 }
 CONV = {
-    'flip':     lambda x: f'{ x:.6e}',
-    'hdrvdp3':  lambda x: f'{-x:.6f}',
-    'mse':      lambda x: f'{ x:.6e}',
-    'psnr':     lambda x: f'{-x:.6f}',
-    'ssim':     lambda x: f'{-x:.6f}',
+    'flip':     lambda x: f'{ x:.2e}',
+    'hdrvdp3':  lambda x: f'{-x:.2f}',
+    'mse':      lambda x: f'{ x:.2e}',
+    'psnr':     lambda x: f'{-x:.2f}',
+    'ssim':     lambda x: f'{-x:.2f}',
 }

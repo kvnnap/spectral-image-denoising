@@ -5,6 +5,11 @@
 /smb/
 /offline/
 /results/
+/paper_data/seeded-images/
+/paper_data/result_gray_all_merged.json
+/paper_data/runs*.json
+/paper_data/**/*.csv
+/paper_data/**/*.tex
 __pycache__/
 
 CurveLab-2.1.3.tar.gz

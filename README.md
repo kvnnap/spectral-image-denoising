@@ -244,4 +244,92 @@ see here for more info:
 https://www.mathworks.com/matlabcentral/answers/1907290-how-to-manually-select-the-libstdc-library-to-use-to-resolve-a-version-glibcxx_-not-found
 
 
+# Paper Extraction Process
+
+The following is a step-by-step guide of the process and commands executed. Some runs were actually split on multiple servers, to increase concurrency. Here, we assume only one machine is going to compute these runs.
+
+## Runs
+
+The runs were generated using all six configs in paper_data/configs. These can all be merged in one config if needed. The flip variants are separate because they run faster on a machine with a GPU.
+
+- config_gray_all_flip.json
+- config_gray_all.json
+- config_gray_aces_all_flip.json
+- config_gray_aces_all.json
+- config_gray_aces_nogamma_all_flip.json
+- config_gray_aces_nogamma_all.json
+
+Example of running *config_gray_aces_nogamma_all.json* above:
+
+```bash
+docker run --rm -it --gpus all -v $PWD/smb:/app/data kvnnap/python-image-processing --cores 4 --image-base seeded-images --config config_gray_aces_nogamma_all.json --result result_gray_aces_nogamma_all.json --temp temp_gray_aces_nogamma_all.json
+```
+
+This will generate a result **WITHOUT** all metrics computed for each run. To include all metrics, run the `add_all_metrics.py` script. This adds the 'bestMetricResults' field in each result.
+
+The ultimate paper results were generated only with *config_gray_aces_nogamma_all* and *config_gray_aces_nogamma_all_flip* json files. The ultimate results from these were saved to *runs_merged.json*.
+
+Results can be visualised as explained above.
+
+## Table Extraction
+
+In this particular experiment we were intersted in the first scoring result for each scene and each metric. Eight scenes were examined and there are five metrics which generate 40 results. To extract the tables, in LaTeX or CSV, the `extract_score.py` script is used. The previous result is input, the image loader param is set to *gray_aces_tm_nogamma* (for this experiment) and out-table param is the path of the output table. The use-best-metrics param is set to sort the results using all metrics combined before extracting the first scoring result.
+
+An example of table extraction:
+
+```bash
+extract_score.py --result result_gray_aces_nogamma_all.json --image-loaders gray_aces_tm_nogamma --out-table config_top_runs_gray_aces_tm_ng_bm
+```
+
+Used:
+
+```json
+["--result", "paper_data/result_gray_all_merged.json", "--out-table", "paper_data/tables"],
+["--result", "paper_data/result_gray_all_merged.json", "--out-table", "paper_data/tables_bm", "--use-best-metrics"]
+```
+
+### STAR Tables Extraction
+
+To generate the scores for the ReLaX, ReBLUR and Optix denoisers, the `extract_star_score.py` script is used. This script assumes suffix **_8** to be the ref image in the *--ref-image-dir* parameter. All noise levels _0, _1, etc in *--noisy-image-dir* are loaded and scores are stored in the *--result* file path (json). Hint. Ref images are in the seeded-images directory.
+
+## Statistical analysis
+
+In this particular experiment we were intersted in the first scoring result for each scene and each metric. Eight scenes were examined and there are five metrics which generate 40 results. The `extract_top_config.py` script is given a result, like *result_gray_aces_nogamma_all.json* and generates a config and a runData file. The config file is the input for a further run, which computes the first scoring runs for a hundred times. This result is then used to generate statistical confidence. The runData is a file that contains only the first scorers in it. It can be useful for viewing or generating other data faster.
+
+Args used (for normal) - renamed to runs_merged.json:
+
+```json
+[
+    "--result", "paper_data/result_gray_all_merged.json",
+    "--out-config", "paper_data/config_runs.json",
+    "--image-loaders", "gray_aces_tm_nogamma"
+]
+```
+
+Args used (for best metrics) - renamed to runs_best_metric.json:
+
+```json
+[
+    "--result", "paper_data/result_gray_all_merged.json",
+    "--out-config", "paper_data/config_runs_best_metrics.json",
+    "--image-loaders", "gray_aces_tm_nogamma",
+    "--use-best-metrics"
+]
+```
+
+## Image Extraction
+
+The `generate_run_images.py` script is used to apply the inverse transform and get back the denoised images. Grayscale coeffs can be applied to RGB channels using *--pre-image-loader*. *--post-procs* is used to apply further post processing if needed. All the runs in *--result* will be used.
+
+Args used:
+
+```json
+[   
+    "--result", "paper_data/runs_merged.json", 
+    "--image-base", "paper_data/seeded-images", 
+    "--post-procs", "aces_tm", 
+    "--formats", "png",
+    "--out-dir", "paper_data/denoised"
+]
+```
 

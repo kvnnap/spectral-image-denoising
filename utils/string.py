@@ -39,6 +39,8 @@ def array_to_latex_table(array):
     lStr += " & ".join(map(lambda x: f'\\textbf{{{x}}}', head)) + " \\\\\n"
     lStr += "\\hline\n"
     for row in tail:
+        # row[0] = f'\\textsc{{{str(row[0])}}}'
+        # row[1] = str(row[1]).upper()
         lStr += " & ".join(map(str, row)) + " \\\\\n"
     
     lStr += "\\hline\n"
