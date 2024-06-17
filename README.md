@@ -333,3 +333,18 @@ Args used:
 ]
 ```
 
+## Merging image buffers
+
+The `add_exr_images.py` script is used to add/combine source images together (additively). This is useful to combine diffuse, specular and caustic buffers for previewing. Example is below. Images should contain the filename to each buffer.
+
+```json
+[
+    "--image-base", "paper_data/seeded-images",
+    "--images", "caustic_glass_caustics_2.exr, caustic_glass_caustics_7.exr",
+    "--post-procs", "aces_tm,gamma",
+    "--pre-image-loader", "gray_aces_tm_nogamma",
+    "--formats", "png",
+    "--out-path", "paper_data/test_image"
+]
+```
+
