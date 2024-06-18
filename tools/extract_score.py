@@ -36,6 +36,7 @@ def main():
     }
 
     scoreIndex = RowData.HEADER.index('score')
+    searchIndex = RowData.HEADER.index('search')
     sceneIndex = RowData.HEADER.index('ref-noisy')
     metricIndex = RowData.HEADER.index('metric')
     denIndex = RowData.HEADER.index('denoiser_coeff')
@@ -109,8 +110,8 @@ def main():
     # Generate detailed tables
     
     # Alter below two arrays to get other columns in data
-    header = ['scene', 'metric', 'score', 'denoiser', 'threshold', 'time']
-    dataIndices = [metricIndex, scoreIndex, denIndex, thresIndex, timeIndex]
+    header = ['scene', 'metric', 'search', 'denoiser', 'threshold', 'time', 'score']
+    dataIndices = [metricIndex, searchIndex, denIndex, thresIndex, timeIndex, scoreIndex]
 
     table = [ header ]
     for scene in filterDict['ref-noisy']:

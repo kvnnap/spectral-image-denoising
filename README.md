@@ -332,6 +332,18 @@ Args used:
     "--out-dir", "paper_data/denoised"
 ]
 ```
+Color example:
+
+```json
+[   
+    "--result", "paper_data/runs_best_metrics.json", 
+    "--image-base", "paper_data/seeded-images", 
+    "--pre-image-loader", "rgb", 
+    "--post-procs", "", 
+    "--formats", "exr",
+    "--out-dir", "paper_data/denoised_best_metrics"
+]
+```
 
 ## Merging image buffers
 
@@ -339,12 +351,12 @@ The `add_exr_images.py` script is used to add/combine source images together (ad
 
 ```json
 [
-    "--image-base", "paper_data/seeded-images",
-    "--images", "caustic_glass_caustics_2.exr, caustic_glass_caustics_7.exr",
-    "--post-procs", "aces_tm,gamma",
-    "--pre-image-loader", "gray_aces_tm_nogamma",
-    "--formats", "png",
-    "--out-path", "paper_data/test_image"
+    "--image-base", "paper_data/rgb_test",
+    "--images", "povray_diff_acc_2.exr, povray_spec_acc_2.exr, povray_caustics_2.exr",
+    "--post-procs", "",
+    "--pre-image-loader", "rgb",
+    "--formats", "exr",
+    "--out-path", "paper_data/povray_noisy_merged"
 ]
 ```
 
