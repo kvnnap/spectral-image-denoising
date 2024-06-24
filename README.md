@@ -1,4 +1,12 @@
-# python-image-processing
+# spectral-image-denoising
+
+## Scenes used
+
+- CUP - https://pbrt.org/scenes-v3/
+- CUPS, DICE, REFLECT and OUTER - http://www.oyonale.com/modeles.php
+- TORUS and EGG - https://www.mitsuba-renderer.org/download.html
+- WATER - https://benedikt-bitterli.me/resources/
+
 
 ## Arguments
 
@@ -342,6 +350,18 @@ Color example:
     "--post-procs", "", 
     "--formats", "exr",
     "--out-dir", "paper_data/denoised_best_metrics"
+]
+```
+
+## Image Convert
+
+`image_convert.py`
+
+```json
+[
+    "--image", "paper_data/",
+    "--image-loader", "rgb_aces_tm",
+    "--destination", "paper_data/"
 ]
 ```
 
