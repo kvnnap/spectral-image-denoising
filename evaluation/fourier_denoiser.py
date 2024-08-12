@@ -2,7 +2,7 @@ import numpy as np
 import copy
 from evaluation.denoiser import Denoiser
 from utils.array import sanitise
-from utils.image import seperate_channels, merge_channels
+from utils.image import seperate_channels, merge_channels, interpolate_image_to_range
 from utils.math import get_threshold_max
 
 class FourierDenoiser(Denoiser):
@@ -89,4 +89,6 @@ class FourierDenoiser(Denoiser):
         (magnitude_spectrum, phase_spectrum) = FourierDenoiser.get_mag_phase(image)
         return FourierDenoiser.get_image_ifft(image.shape, magnitude_spectrum, phase_spectrum, thresholding, coeff)
     def get_ceoff_image(self, image, coeff, thresholding):
+        # (magnitude_spectrum, _) = FourierDenoiser.get_mag_phase(image)
+        # return interpolate_image_to_range(np.log(np.abs(thresholding.fn(magnitude_spectrum, FourierDenoiser.create_multimask(image.shape, coeff))) + 1.0))
         return FourierDenoiser.create_multimask(image.shape, coeff)

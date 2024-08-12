@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--image-loaders', default='', help='Which image loaders will be considered (comma separated) (tabbed)')
     parser.add_argument('--metrics', default='', help='Metrics (comma separated) (tabbed)')
     parser.add_argument('--use-best-metrics', default=False, action='store_true', help='Sort by best metrics. There will be no filtering occuring using one metric')
+    parser.add_argument('--for-benchmarks', default=False, action='store_true', help='Set samples to 1 and do not random start, useful to perform benchmarks using --cores 1 later')
     parser.add_argument('--out-config', default='smb/exp_1c/config_top_runs.json', help='The config produced for running the samples')
     args = parser.parse_args()
 
@@ -69,10 +70,11 @@ def main():
         ps.metrics = [ dp.metric ]
         ps.thresholds = [ dp.thresholding ]
         ps.searchMethods = [ { k: [v] if k != 'name' else v for k, v in dp.search.items() } ]
-        ps.searchMethods[0].update({ 'start': [ 'random' ] })
         ps.iterations = [ dp.iterations ]
         ps.denoisers = [ { k: [v] if k != 'name' else v for k, v in dp.denoiser.items() } ]
-        ps.samples = 100
+        if not args.for_benchmarks:
+            ps.searchMethods[0].update({ 'start': [ 'random' ] })
+            ps.samples = 100
         paramSpaces.append(ps)
     
     save(args.out_config, paramSpaces, False)

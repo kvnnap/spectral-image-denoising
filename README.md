@@ -380,3 +380,22 @@ The `add_exr_images.py` script is used to add/combine source images together (ad
 ]
 ```
 
+# Time Figures
+
+Example for benchmarking - generates top results config appropriate for one run, to be run using 1 core
+
+```json
+[
+    "--result", "paper_data/result_gray_all_merged.json", 
+    "--image-loaders", "gray_aces_tm_nogamma", 
+    "--out-config", "paper_data/config_top_runs_bm_all.json",
+    "--use-best-metrics", "--for-benchmarks"
+]
+```
+
+```bash
+
+docker run --rm -it --entrypoint python3 -v $PWD:/app/data kvnnap/python-image-processing /app/tools/extract_top_config.py --result paper_data/result_gray_all_merged.json --image-loaders gray_aces_tm_nogamma --for-benchmarks --out-config paper_data/config_top_runs_all.json
+
+docker run --rm -it --gpus all -v $PWD/paper_data:/app/data kvnnap/python-image-processing:new --cores 1 --image-base seeded-images --config config_top_runs_all.json --result runs_all_40_single.json --temp temp_all_40_single.json
+```
