@@ -3,6 +3,7 @@ import OpenEXR
 import Imath
 import matplotlib.pyplot as plt
 
+from utils.array import sanitise
 from utils.string import extract_file_extension, concat_paths
 
 BASE_PATH = ''
@@ -119,6 +120,8 @@ def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
     path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
     image = load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
+    # Added for 3rd paper
+    image = sanitise(image)
     if gray:
         image = convert_to_grayscale(image)
     if tm:
