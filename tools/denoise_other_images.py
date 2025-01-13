@@ -83,7 +83,7 @@ class PlotComparison:
         """
         Plots the comparison scores against the sequence numbers.
         """
-        sequence_numbers = [obj['num'] for obj in self.paired_objects]
+        sequence_numbers = [obj['num'] + 1 for obj in self.paired_objects]
         
         # Check consistency
         if len(sequence_numbers) != len(self.scores):
@@ -112,8 +112,8 @@ class PlotComparison:
                 label=f'{text[i] if i < len(text) else "Score " + str(i)}'
             )
 
-        textSize = 32
-        tickSize = 24
+        textSize = 16
+        tickSize = 12
 
         # Setting font size for title, labels, and ticks
         plt.title('Noisy and Denoised Animation Score', fontsize=textSize)
@@ -135,9 +135,19 @@ class PlotComparison:
 
         # Show the plot
         plt.tight_layout()  # Adjust layout to prevent clipping
+
+        def on_resize(event):
+            plt.tight_layout()
+        plt.gcf().canvas.mpl_connect('resize_event', on_resize)
+
         plt.show()
 
 def main():
+    # Uncomment below if json file already generated
+    # myPlt = load("myPlt.json")
+    # myPlt.plot()
+    # return
+
     versionString = get_version().to_string()
     parser = argparse.ArgumentParser(description=f'Generate image from coeffs in results.\n{versionString}')
     # smb/exp_1c/runs_merged.json

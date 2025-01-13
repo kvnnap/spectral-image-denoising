@@ -7,7 +7,9 @@
 		"dockerfile": "Dockerfile"
 	},
 	"mounts": [
-		"type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly"
+		"type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly",
+		"type=bind,source=/etc/localtime,target=/etc/localtime,readonly",
+		"type=bind,source=${localEnv:HOME}/python-anvil,target=/home/vscode/python-anvil"
 	],
 	"runArgs": ["--gpus", "all"]
 
