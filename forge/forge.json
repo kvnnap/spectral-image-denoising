@@ -1,0 +1,9 @@
+{
+    "WSUrl": "ws://10.60.10.68:8008",
+    "Systems": [
+        {
+            "Name": "MetricImageSystem",
+            "Configuration": {}
+        }
+    ]
+}

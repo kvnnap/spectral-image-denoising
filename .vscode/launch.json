@@ -5,6 +5,13 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
+            "args": [
+                "--result", "smb/runs_all_8_bm_single.json", 
+                "--image-base", "smb/seeded-images", 
+                "--run-id", "0", 
+                "--image", "smb/spectral-translation",
+                "--out-dir", "smb/spectral-translation/temp"
+            ],
             "justMyCode": true
         },
         {
@@ -20,8 +27,27 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/visualisation/run.py",
-            "args": ["--result", "result.json", "--image-base", "smb/seeded-images"],
+            "args": ["--result", "smb/runs_all_8_bm_single.json", "--image-base", "smb/seeded-images"],
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Python: Anvil Connect",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/forge/run.py",
+            "args": [],
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Thesis Graphs",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/thesis_compare_images_graph.py",
+            "args": [
+                "--results-dir", "/home/vscode/results",
+                "--scores-file", "scores.json"
+            ],
+            "justMyCode": true
+        },
     ]
 }
