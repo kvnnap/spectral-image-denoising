@@ -56,7 +56,10 @@ def compute_score(ref, noisy, imgLoaderStr):
     dp = DPString(imgLoaderStr)
     ret_obj = {}
     for metric_name, similarity_fn in metric_fns.items():
-        ret_obj[metric_name] = similarity_fn(ref, noisy, dp)
+        try:
+            ret_obj[metric_name] = similarity_fn(ref, noisy, dp)
+        except Exception as e:
+            ret_obj[metric_name] = None
     return ret_obj
 
 def compare_images(ref_data, noisy_image):
@@ -165,7 +168,6 @@ def plot_scores(g_image_map, out_dir):
                 if not re.match(buffer_pattern, buff_type):
                     continue
                 # Get Scores for this scene, camera, and buffer type
-                seqs = defaultdict(list)
                 scores = defaultdict(lambda: defaultdict(list))
                 for shader, images in shaders_image_map.items():
                     if not re.match(shader_pattern, shader):
@@ -173,23 +175,18 @@ def plot_scores(g_image_map, out_dir):
                     for img in images:
                         if 'score' not in img:
                             continue  # Skip images without scores
-                        seqs[shader].append(img['sequence_number'])
                         for metric, score in img['score'].items():
-                            if re.match(metric_pattern, metric):
-                                scores[metric][shader].append(score)
+                            if score is not None and re.match(metric_pattern, metric):
+                                scores[metric][shader].append((img['sequence_number'], score))
                 
                 # Plot data for each metric, one plot per metric
                 for metric, shaders in scores.items():
                     plt.figure(figsize=(10, 6))
                     plt.title(f'{scene} - {camera} - {buff_type} [{imageLoaderStr}]')
-                    # plt.text(0.95, 0.05, f'{scene} - {camera} - {buff_type}',
-                    #          horizontalalignment='right', verticalalignment='bottom',
-                    #          transform=plt.gca().transAxes, fontsize=10, bbox=dict(facecolor='white', alpha=0.5))
                     plt.xlabel('Samples (4^x)')
                     plt.ylabel(metric.upper())  # Metric name as y-axis label
                     for shader, scores in shaders.items():
-                        x = seqs[shader] # x = range(len(scores))
-                        y = scores
+                        x, y = zip(*scores) # x = range(len(scores))
                         plt.plot(x, y, marker='o', linestyle='-', label=shader)
                     plt.legend()
                     plt.savefig(specific_dir.joinpath(f'{scene}_{camera}_{buff_type}_{metric}_plot.png'))
