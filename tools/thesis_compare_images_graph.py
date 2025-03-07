@@ -243,7 +243,7 @@ def main():
     parser.add_argument('--image-loader', type=str, default='rgb_aces_tm_nogamma', help='Which loader to use when loading EXR images.')
     parser.add_argument('--scores-file', type=str, default='scores.json', help='Name of the scores JSON file to load/save.')
     parser.add_argument('--plot-only', action='store_true', help='If set, only plot the graph without recomputing scores.')
-    parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum.')
+    parser.add_argument('--cores', default=1, type=int, help='Number of cores to use. 0 uses maximum.')
     # List-based
     parser.add_argument('--metrics', default='flip,hdrvdp3,mse,psnr,ssim', help='The metric name to use for comparison. Default all metrics.')
     parser.add_argument('--buffer-types', default='diff_acc,spec_acc,caus_acc,rad_acc', help='The buffer types to use for comparison. Defaults to all buffer types.')
@@ -258,6 +258,7 @@ def main():
     metrics = comma_to_list(args.metrics)
     buffer_types = comma_to_list(args.buffer_types)
     shaders = comma_to_list(args.shaders)
+    cores = args.cores if args.cores > 0 else None
 
     if not(metrics and buffer_types and shaders):
         print("Please specify at least one buffer type, shader, and metric.")
@@ -272,6 +273,7 @@ def main():
     results_dir = Path(args.results_dir)
     output_dir  = Path(args.output_dir)
     scores_file  = output_dir / Path(args.scores_file)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     set_base_path(str(results_dir)) # This is a global
 
@@ -279,7 +281,7 @@ def main():
         g_image_map = load(scores_file)
     else:
         g_image_map, image_counter = scan_directory(results_dir)
-        compute_scores(g_image_map, image_counter, args.cores)
+        compute_scores(g_image_map, image_counter, cores)
         save(scores_file, g_image_map)
 
     plot_scores(g_image_map, output_dir)
