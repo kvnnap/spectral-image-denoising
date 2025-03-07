@@ -15,17 +15,20 @@ import argparse
 import re
 import tqdm
 import matplotlib.pyplot as plt
+import multiprocessing
 
 from pathlib import Path
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import *
 from utils.serialisation import load, save, save_text
-from utils.image import set_base_path
+from utils.image import set_base_path, get_base_path
 from utils.string import comma_to_list
+
 
 # Globals
 
@@ -52,20 +55,15 @@ class DPString:
     def __init__(self, imageLoader):
         self.imageLoader = imageLoader
 
-def compute_score(ref, noisy, imgLoaderStr):
+def compute_score(ref, noisy, imgLoaderStr, metrFns):
     dp = DPString(imgLoaderStr)
     ret_obj = {}
-    for metric_name, similarity_fn in metric_fns.items():
+    for metric_name, similarity_fn in metrFns.items():
         try:
             ret_obj[metric_name] = similarity_fn(ref, noisy, dp)
         except Exception as e:
             ret_obj[metric_name] = None
     return ret_obj
-
-def compare_images(ref_data, noisy_image):
-    noisy_data = imageLoader(noisy_image['image'])
-    score = compute_score(ref_data, noisy_data, imageLoaderStr)
-    return score
 
 # Get list of directories in the results directory using pathlib
 def scan_directory(results_dir):
@@ -110,7 +108,43 @@ def scan_directory(results_dir):
                 g_image_map[scene.name][camera.name] = image_map
     return (g_image_map, image_counter)
 
-def compute_scores(g_image_map, image_counter):
+class MyTask:
+    def __init__(self, scene, camera, buff_type, shader, ref, images, image_loader_str, results_dir, metric_pattern):
+        self.scene = scene
+        self.camera = camera
+        self.buff_type = buff_type
+        self.shader = shader
+        self.ref_path = ref
+        self.image_paths = images
+        self.image_loader_str = image_loader_str
+        self.results_dir = results_dir
+        self.metric_pattern = metric_pattern
+        self.results = []
+
+    def run(self):
+        set_base_path(str(self.results_dir)) # This is a global
+        imageLoader = ImageLoaderFactory.create(self.image_loader_str)
+        metrFns = {metric: metric_fn for metric, metric_fn in metric_fns.items() if re.match(self.metric_pattern, metric) }
+        ref_data = imageLoader(self.ref_path)
+        for img in self.image_paths:
+            noisy_data = imageLoader(img)
+            self.results.append(compute_score(ref_data, noisy_data, self.image_loader_str, metrFns))
+        return self
+
+def iterate_tasks(tasks, cores):
+    if cores == 1:
+        for task in tasks:
+            yield task.run()
+    else:
+        with ProcessPoolExecutor(max_workers=cores) as executor:
+            # futures = executor.map(lambda x: x.run(), tasks)
+            futures = [executor.submit(task.run) for task in tasks]
+            for future in as_completed(futures):
+                yield future.result()
+
+def compute_scores(g_image_map, image_counter, cores):
+    tasks = []
+
     # Create a progress bar to track the progress of processing each buffer type and shader type
     bar = tqdm.tqdm(total=image_counter, desc="Computing Scores")
     for scene, cameras in g_image_map.items():
@@ -124,16 +158,20 @@ def compute_scores(g_image_map, image_counter):
                     continue
 
                 ref_image = images[-1]
-                ref_data = imageLoader(ref_image['image'])
-
                 for shader, img_list in shaders_image_map.items():
                     if shader == ref_name:
                         continue  # Skip the reference shader
                     
-                    # The rest of the images are compared to the reference image
-                    for img in img_list:
-                        img['score'] = compare_images(ref_data, img)
-                        bar.update(1)
+                    task = MyTask(scene, camera, buff_type, shader, 
+                                    ref_image['image'], [img['image'] for img in img_list],
+                                    imageLoaderStr, get_base_path(), metric_pattern)
+                    tasks.append(task)
+
+    for res in iterate_tasks(tasks, cores):
+        img_list = g_image_map[res.scene][res.camera][res.buff_type][res.shader]
+        for i, img in enumerate(img_list):
+            img['score'] = res.results[i]
+        bar.update(len(res.image_paths))
     bar.close()
 
 def plot_scores(g_image_map, out_dir):
@@ -205,6 +243,7 @@ def main():
     parser.add_argument('--image-loader', type=str, default='rgb_aces_tm_nogamma', help='Which loader to use when loading EXR images.')
     parser.add_argument('--scores-file', type=str, default='scores.json', help='Name of the scores JSON file to load/save.')
     parser.add_argument('--plot-only', action='store_true', help='If set, only plot the graph without recomputing scores.')
+    parser.add_argument('--cores', default=0, type=int, help='Number of cores to use. 0 uses maximum.')
     # List-based
     parser.add_argument('--metrics', default='flip,hdrvdp3,mse,psnr,ssim', help='The metric name to use for comparison. Default all metrics.')
     parser.add_argument('--buffer-types', default='diff_acc,spec_acc,caus_acc,rad_acc', help='The buffer types to use for comparison. Defaults to all buffer types.')
@@ -212,7 +251,7 @@ def main():
 
     args = parser.parse_args()
 
-    global imageLoaderStr, imageLoader, file_pattern, shader_pattern, metric_pattern, buffer_pattern, metric_fns
+    global imageLoaderStr, imageLoader, file_pattern, shader_pattern, metric_pattern, buffer_pattern
     imageLoaderStr = args.image_loader
     imageLoader = ImageLoaderFactory.create(imageLoaderStr)
 
@@ -230,9 +269,6 @@ def main():
     buffer_pattern = fr"^({'|'.join(buffer_types)})$"
     metric_pattern = fr"^({'|'.join(metrics)})$"
     
-    # Remove all metric functions not matching the metric_pattern
-    metric_fns = {metric: metric_fn for metric, metric_fn in metric_fns.items() if re.match(metric_pattern, metric) }
-
     results_dir = Path(args.results_dir)
     output_dir  = Path(args.output_dir)
     scores_file  = output_dir / Path(args.scores_file)
@@ -243,7 +279,7 @@ def main():
         g_image_map = load(scores_file)
     else:
         g_image_map, image_counter = scan_directory(results_dir)
-        compute_scores(g_image_map, image_counter)
+        compute_scores(g_image_map, image_counter, args.cores)
         save(scores_file, g_image_map)
 
     plot_scores(g_image_map, output_dir)
@@ -251,4 +287,5 @@ def main():
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main()

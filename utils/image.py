@@ -12,6 +12,9 @@ def set_base_path(base_path):
     global BASE_PATH
     BASE_PATH = base_path
 
+def get_base_path():
+    return BASE_PATH
+
 def load_image_raw_file(file_path):
     with open(file_path, 'rb') as f:
         # Read the first two integers as the width and height
