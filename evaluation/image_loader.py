@@ -1,4 +1,4 @@
-from utils.image import load_image, tone_map, tone_map_aces
+from utils.image import load_image, process_loaded_image, tone_map, tone_map_aces
 
 class ImageLoaderDescriptor:
     def __init__(self):
@@ -62,9 +62,9 @@ class ImageLoaderDescriptor:
 
 
 class ImageLoaderFactory:
-    # Method returned expects (input, t, substitute)
+
     @staticmethod
-    def create(il_name):
+    def initialise(il_name):
         imgLoaderDesc = ImageLoaderDescriptor().fromString(il_name)
         tmSel = {
             'reinhard': tone_map,
@@ -72,4 +72,16 @@ class ImageLoaderFactory:
         }
         if imgLoaderDesc.toneMapper not in tmSel.keys():
             raise ValueError(f"Invalid image loader name {il_name}. ToneMapper not found")
-        return lambda path: load_image(path, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tmSel[imgLoaderDesc.toneMapper])
+        return (imgLoaderDesc, tmSel[imgLoaderDesc.toneMapper])
+
+    # Method returned expects (input, t, substitute)
+    @staticmethod
+    def create(il_name):
+        (imgLoaderDesc, tm) = ImageLoaderFactory.initialise(il_name)
+        return lambda path: load_image(path, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm)
+    
+        # Method returned expects (input, t, substitute)
+    @staticmethod
+    def create_for_np_image(il_name):
+        (imgLoaderDesc, tm) = ImageLoaderFactory.initialise(il_name)
+        return lambda image: process_loaded_image(image, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm)

@@ -49,6 +49,7 @@ metric_fns = {
     'mse':       lambda ref, noisy, dp :  local_mse(ref, noisy, dp),
     'psnr':      lambda ref, noisy, dp : -local_psnr(ref, noisy, dp),
     'ssim':      lambda ref, noisy, dp : -local_ssim(ref, noisy, dp),
+    'lpips':     lambda ref, noisy, dp :  local_lpips(ref, noisy, dp),
 }
 
 class DPString:
@@ -142,7 +143,7 @@ def iterate_tasks(tasks, cores):
             for future in as_completed(futures):
                 yield future.result()
 
-def compute_scores(g_image_map, image_counter, cores):
+def compute_scores(g_image_map, image_counter, ref_index, cores):
     tasks = []
 
     # Create a progress bar to track the progress of processing each buffer type and shader type
@@ -157,7 +158,7 @@ def compute_scores(g_image_map, image_counter, cores):
                 if not images:
                     continue
 
-                ref_image = images[-1]
+                ref_image = images[ref_index]
                 for shader, img_list in shaders_image_map.items():
                     if shader == ref_name:
                         continue  # Skip the reference shader
@@ -174,6 +175,21 @@ def compute_scores(g_image_map, image_counter, cores):
         bar.update(len(res.image_paths))
     bar.close()
 
+# compare images with the same sequence number, same buffer type, scene and camera
+def aggregate_score(image_1_score, image_2_score):
+    scores = []
+    for metric, score_1 in image_1_score.items():
+        score_2 = image_2_score[metric]
+        if score_1 is None or score_2 is None or not re.match(metric_pattern, metric):
+            continue
+        score = score_1 / score_2 if metric in ['hdrvdp3', 'psnr', 'ssim'] else score_2 / score_1
+        scores.append(score)
+    
+    cnt = sum(1 for score in scores if score > 1)
+    sums = sum(scores)
+
+    return cnt
+
 def plot_scores(g_image_map, out_dir):
     # plots_dir = Path(out_dir).joinpath(f'{scene}/{camera}')
     plots_dir = Path(out_dir)
@@ -186,15 +202,18 @@ def plot_scores(g_image_map, out_dir):
                 if not re.match(buffer_pattern, buff_type):
                     continue
                 metrics = set()
-                for shader, images in shaders_image_map.items():
-                    if not re.match(shader_pattern, shader):
-                        continue
+                filtered_images = [images for shader, images in shaders_image_map.items() if re.match(shader_pattern, shader)]
+                for images in filtered_images:
                     for img in images:
                         if 'score' not in img: continue
                         for metric, score in img['score'].items():
                             if re.match(metric_pattern, metric):
                                 metrics.add(metric)
                 num_plots += len(metrics)
+                # Handle aggregate plot counting
+                count_filt_images = [any('score' in img for img in images) for images in filtered_images]
+                if len(metrics) > 1 or sum(count_filt_images) > 1:
+                    num_plots += 1
 
     plt.ioff()
     bar = tqdm.tqdm(total=num_plots, desc="Plotting Scores")
@@ -217,6 +236,33 @@ def plot_scores(g_image_map, out_dir):
                             if score is not None and re.match(metric_pattern, metric):
                                 scores[metric][shader].append((img['sequence_number'], score))
                 
+                # Generate aggregate score
+                for shader_1, images_1 in shaders_image_map.items():
+                    if not re.match(shader_pattern, shader_1):
+                        continue
+
+                    aggr_score_map = defaultdict(int)
+                    for shader_2, images_2 in shaders_image_map.items():
+                        if shader_1 == shader_2 or not re.match(shader_pattern, shader_2):
+                            continue
+
+                        image_2_seqs_iter = iter(images_2)
+                        for image_1 in images_1:
+                            image_seq = image_1['sequence_number']
+                            image_2 = None
+                            while (image_2 := next(image_2_seqs_iter, None)) is not None and image_seq != image_2['sequence_number']:
+                                pass
+                            if image_2 is None:
+                                continue
+
+                            if 'score' not in image_1 or 'score' not in image_2:
+                                continue  # Skip images without scores
+
+                            aggr_score_map[image_seq] += aggregate_score(image_1['score'], image_2['score'])
+
+                    for seq, aggr_score in aggr_score_map.items():
+                        scores['aggregate'][shader_1].append((seq, aggr_score))
+
                 # Plot data for each metric, one plot per metric
                 for metric, shaders in scores.items():
                     plt.figure(figsize=(10, 6))
@@ -244,8 +290,9 @@ def main():
     parser.add_argument('--scores-file', type=str, default='scores.json', help='Name of the scores JSON file to load/save.')
     parser.add_argument('--plot-only', action='store_true', help='If set, only plot the graph without recomputing scores.')
     parser.add_argument('--cores', default=1, type=int, help='Number of cores to use. 0 uses maximum.')
+    parser.add_argument('--ref-index', default=-1, type=int, help='Which reference sequence number to use from the ref directory. Default is the last sequence number (-1) in the ref directory.')
     # List-based
-    parser.add_argument('--metrics', default='flip,hdrvdp3,mse,psnr,ssim', help='The metric name to use for comparison. Default all metrics.')
+    parser.add_argument('--metrics', default='flip,hdrvdp3,mse,psnr,ssim,lpips', help='The metric name to use for comparison. Default all metrics.')
     parser.add_argument('--buffer-types', default='diff_acc,spec_acc,caus_acc,rad_acc', help='The buffer types to use for comparison. Defaults to all buffer types.')
     parser.add_argument('--shaders', default='pt,lt,lt_opt,lt_imp_dist,lt_imp_dist_cam,lt_imp_dist_cam_rt', help='The shaders to use for comparison. Defaults to all shaders.')
 
@@ -281,7 +328,7 @@ def main():
         g_image_map = load(scores_file)
     else:
         g_image_map, image_counter = scan_directory(results_dir)
-        compute_scores(g_image_map, image_counter, cores)
+        compute_scores(g_image_map, image_counter, args.ref_index, cores)
         save(scores_file, g_image_map)
 
     plot_scores(g_image_map, output_dir)

@@ -2,6 +2,7 @@ import numpy as np
 import hdrpy
 import matlab
 import torch
+import lpips
 
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
@@ -11,6 +12,8 @@ from flip_torch.flip_loss import LDRFLIPLoss, HDRFLIPLoss, compute_start_stop_ex
 from flip.data import HWCtoCHW
 from flip.flip_api import compute_exposure_params, compute_ldrflip, compute_hdrflip
 from flip.flip import set_start_stop_num_exposures
+
+from evaluation.image_loader import ImageLoaderDescriptor, ImageLoaderFactory
 
 def local_mse(ref, noisy, dpString):
     #return np.mean((ref - noisy) ** 2).item()
@@ -175,21 +178,58 @@ def local_flip(ref, noisy, dpString):
         score = np.mean(flip).item()
     return score
 
+def local_lpips(ref, noisy, dpString):
+    imgLoader = dpString.imageLoader.strip().lower()
+    isLdr = '_tm' in imgLoader
+
+    if not isLdr:
+        # ild =  ImageLoaderDescriptor().fromString(imgLoader)
+        # ild.setToneMapped(True)
+        # tmImgLoaderStr = ild.toString()
+        # tmImageLoader = ImageLoaderFactory.create_for_np_image(tmImgLoaderStr)
+
+        # ref = tmImageLoader(ref)
+        # noisy = tmImageLoader(noisy)
+
+        # throw until tested
+        raise ValueError("Local LPIPS requires an LDR image.")
+
+    isGPU = torch.cuda.is_available()
+
+    ## Initializing the model
+    loss_fn = lpips.LPIPS(net='alex', version='0.1')
+
+    if isGPU:
+        loss_fn.cuda()
+
+    # These will transform image from [0,1] to [-1, 1]
+    ref_b = lpips.im2tensor(ref, np.uint8, 1, 1/2)
+    noisy_b = lpips.im2tensor(noisy, np.uint8, 1, 1/2)
+
+    if isGPU:
+        ref_b = ref_b.cuda()
+        noisy_b = noisy_b.cuda()
+
+    dist = loss_fn.forward(ref_b, noisy_b)
+    return dist.data.cpu().numpy().item()
+
 class MetricFactory:
     @staticmethod
     def create(metricName):
+
+        metric_map = {
+            'mse': local_mse,
+            'ssim': local_ssim,
+            'mse_ssim': local_mse_ssim,
+            'psnr': local_psnr,
+            'hdrvdp3': local_hdrvdp3,
+            'flip': local_flip,
+            'lpips': local_lpips
+        }
+
         name = metricName.strip().lower()
-        if name == "mse":
-            return local_mse
-        elif name == "ssim":
-            return local_ssim
-        elif name == "mse_ssim":
-            return local_mse_ssim
-        elif name == "psnr":
-            return local_psnr
-        elif name == "hdrvdp3":
-            return local_hdrvdp3
-        elif name == "flip":
-            return local_flip
+        if name in metric_map:
+            return metric_map[name]
         else:
             raise ValueError(f"Invalid metric name {metricName}")
+        

@@ -118,11 +118,14 @@ def tone_map_aces(x):
     e = 0.14
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e))
 
-def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
+def load_image_from_file(path):
     # Select image format
     path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
-    image = load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
+    return load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
+
+def process_loaded_image(image, gray = True, tm = True, gamma = True, tm_fn = tone_map):
+    # Load the image from file
     # Added for 3rd paper
     image = sanitise(image)
     if gray:
@@ -132,6 +135,9 @@ def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
         if gamma:
             image = alpha_correction_chain(image)
     return image
+
+def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
+    return process_loaded_image(load_image_from_file(path), gray, tm, gamma, tm_fn)
 
 def get_channel_count(image):
     return image.shape[2] if (len(image.shape) > 2) else 1
