@@ -178,6 +178,16 @@ def local_flip(ref, noisy, dpString):
         score = np.mean(flip).item()
     return score
 
+## Initializing the model - Temporarily suppressed warnings
+## when initialising LPIPS
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    loss_fn_lpips = lpips.LPIPS(net='alex', version='0.1', verbose=False)
+if torch.cuda.is_available():
+    loss_fn_lpips.cuda()
+
 def local_lpips(ref, noisy, dpString):
     imgLoader = dpString.imageLoader.strip().lower()
     isLdr = '_tm' in imgLoader
@@ -194,23 +204,17 @@ def local_lpips(ref, noisy, dpString):
         # throw until tested
         raise ValueError("Local LPIPS requires an LDR image.")
 
-    isGPU = torch.cuda.is_available()
-
-    ## Initializing the model
-    loss_fn = lpips.LPIPS(net='alex', version='0.1')
-
-    if isGPU:
-        loss_fn.cuda()
 
     # These will transform image from [0,1] to [-1, 1]
     ref_b = lpips.im2tensor(ref, np.uint8, 1, 1/2)
     noisy_b = lpips.im2tensor(noisy, np.uint8, 1, 1/2)
 
+    isGPU = torch.cuda.is_available()
     if isGPU:
         ref_b = ref_b.cuda()
         noisy_b = noisy_b.cuda()
 
-    dist = loss_fn.forward(ref_b, noisy_b)
+    dist = loss_fn_lpips.forward(ref_b, noisy_b)
     return dist.data.cpu().numpy().item()
 
 class MetricFactory:
