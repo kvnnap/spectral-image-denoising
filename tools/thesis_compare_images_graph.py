@@ -9,13 +9,16 @@
 
 # Example: veach-bidir/Camera.001/lt/veach_bidir_lt_rad_acc_7.exr
 
+import multiprocessing
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+
 import sys
 import os
 import argparse
 import re
 import tqdm
 import matplotlib.pyplot as plt
-import multiprocessing
 
 from pathlib import Path
 from collections import defaultdict
@@ -336,5 +339,4 @@ def main():
 # The following code block will only execute if this script is run directly,
 # not if it's imported as a module in another script.
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
     main()
