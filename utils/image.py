@@ -2,6 +2,8 @@ import numpy as np
 import OpenEXR
 import Imath
 import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+from skimage.transform import resize
 
 from utils.array import sanitise
 from utils.string import extract_file_extension, concat_paths
@@ -118,16 +120,46 @@ def tone_map_aces(x):
     e = 0.14
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e))
 
+def crop_image(image, pos, size):
+    x_start, y_start = pos[0], pos[1]
+    x_end, y_end = x_start + size[0], y_start + size[1]
+    cropped_image = image[y_start:y_end, x_start:x_end, :]
+    return cropped_image
+
+def resize_image(image, scale_factor):
+    # Resize the image to the specified size
+    new_height = int(image.shape[0] * scale_factor)
+    new_width = int(image.shape[1] * scale_factor)
+    return resize(image, (new_height, new_width), order=5)
+
+def blur_image(image, sigma):
+    # Apply a Gaussian blur to the image
+    return gaussian_filter(image, sigma, mode='nearest')
+
 def load_image_from_file(path):
     # Select image format
     path = concat_paths(BASE_PATH, path)
     file_extension = extract_file_extension(path).lower()
     return load_image_raw_file(path) if file_extension != '.exr' else load_exr_image(path)
 
-def process_loaded_image(image, gray = True, tm = True, gamma = True, tm_fn = tone_map):
+def process_loaded_image(image, gray = True, tm = True, gamma = True, tm_fn = tone_map, config = None):
     # Load the image from file
     # Added for 3rd paper
+    if config:
+        crop = config.get('crop')
+        blur = config.get('blur')
+        downsample = config.get('downsample')
+    else:
+        crop = False
+        blur = False
+        downsample = False
     image = sanitise(image)
+    if crop:
+        image = crop_image(image, crop['pos'], crop['size'])
+    if downsample:
+        image = resize_image(image, config['downsample'])
+    if blur:
+        image = blur_image(image, config['blur'])
     if gray:
         image = convert_to_grayscale(image)
     if tm:
@@ -136,8 +168,8 @@ def process_loaded_image(image, gray = True, tm = True, gamma = True, tm_fn = to
             image = alpha_correction_chain(image)
     return image
 
-def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map):
-    return process_loaded_image(load_image_from_file(path), gray, tm, gamma, tm_fn)
+def load_image(path, gray = True, tm = True, gamma = True, tm_fn = tone_map, config = None):
+    return process_loaded_image(load_image_from_file(path), gray, tm, gamma, tm_fn, config)
 
 def get_channel_count(image):
     return image.shape[2] if (len(image.shape) > 2) else 1

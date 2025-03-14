@@ -28,10 +28,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import *
-from utils.serialisation import load, save, save_text
-from utils.image import set_base_path, get_base_path
+from utils.serialisation import load, save
+from utils.image import save_image_as_exr, set_base_path, get_base_path
 from utils.string import comma_to_list
-
 
 # Globals
 
@@ -59,6 +58,11 @@ class DPString:
     def __init__(self, imageLoader):
         self.imageLoader = imageLoader
 
+def get_config(config, scene, camera):
+    ret_conf = {} | config.get("global", {})
+    ret_conf = ret_conf | config.get("local", {}).get(scene, {}).get(camera, {})
+    return None if len(ret_conf) == 0 else ret_conf
+
 def compute_score(ref, noisy, imgLoaderStr, metrFns):
     dp = DPString(imgLoaderStr)
     ret_obj = {}
@@ -73,19 +77,19 @@ def compute_score(ref, noisy, imgLoaderStr, metrFns):
 def scan_directory(results_dir):
     image_counter = 0
     g_image_map = defaultdict(dict)
-    for scene in results_dir.iterdir():
+    for scene in sorted(results_dir.iterdir()):
         if not scene.is_dir():
             continue
-        for camera in scene.iterdir():
+        for camera in sorted(scene.iterdir()):
             if not camera.is_dir():
                 continue
             my_images = []
-            for shader in camera.iterdir():
+            for shader in sorted(camera.iterdir()):
                 if not shader.is_dir() or not re.match(shader_pattern, shader.name):
                     continue
 
                 # Get list of all exr files in each shader directory using pathlib
-                for image in shader.iterdir():
+                for image in sorted(shader.iterdir()):
                     if not image.is_file():
                         continue
                     match = re.match(file_pattern, image.name)
@@ -112,10 +116,29 @@ def scan_directory(results_dir):
                 g_image_map[scene.name][camera.name] = image_map
     return (g_image_map, image_counter)
 
+def generate_images(g_image_map, config, output_dir):
+    if config is None:
+        return
+    trans_dir = output_dir / 'extra'
+    imageLoader = ImageLoaderFactory.create('rgb')
+    for scene, cameras in g_image_map.items():
+        for camera, image_map in cameras.items():
+            local_config = get_config(config, scene, camera)
+            if local_config is None:
+                continue
+            for buff_type, shaders_image_map in image_map.items():
+                for shader, img_list in shaders_image_map.items():
+                    for img in img_list:
+                        transformed_image = imageLoader(img['image'], local_config)
+                        transformed_image_path = trans_dir / img['image']
+                        transformed_image_path.parent.mkdir(parents=True, exist_ok=True)
+                        save_image_as_exr(transformed_image, str(transformed_image_path))
+
 class MyTask:
-    def __init__(self, scene, camera, buff_type, shader, ref, images, image_loader_str, results_dir, metric_pattern):
+    def __init__(self, scene, camera, buff_type, shader, ref, images, image_loader_str, results_dir, metric_pattern, config):
         self.scene = scene
         self.camera = camera
+        self.config = get_config(config, scene, camera)
         self.buff_type = buff_type
         self.shader = shader
         self.ref_path = ref
@@ -129,9 +152,9 @@ class MyTask:
         set_base_path(str(self.results_dir)) # This is a global
         imageLoader = ImageLoaderFactory.create(self.image_loader_str)
         metrFns = {metric: metric_fn for metric, metric_fn in metric_fns.items() if re.match(self.metric_pattern, metric) }
-        ref_data = imageLoader(self.ref_path)
+        ref_data = imageLoader(self.ref_path, self.config)
         for img in self.image_paths:
-            noisy_data = imageLoader(img)
+            noisy_data = imageLoader(img, self.config)
             self.results.append(compute_score(ref_data, noisy_data, self.image_loader_str, metrFns))
         return self
 
@@ -146,7 +169,7 @@ def iterate_tasks(tasks, cores):
             for future in as_completed(futures):
                 yield future.result()
 
-def compute_scores(g_image_map, image_counter, ref_index, cores):
+def compute_scores(g_image_map, image_counter, ref_index, cores, config):
     tasks = []
 
     # Create a progress bar to track the progress of processing each buffer type and shader type
@@ -168,7 +191,7 @@ def compute_scores(g_image_map, image_counter, ref_index, cores):
                     
                     task = MyTask(scene, camera, buff_type, shader, 
                                     ref_image['image'], [img['image'] for img in img_list],
-                                    imageLoaderStr, get_base_path(), metric_pattern)
+                                    imageLoaderStr, get_base_path(), metric_pattern, config)
                     tasks.append(task)
 
     for res in iterate_tasks(tasks, cores):
@@ -185,13 +208,14 @@ def aggregate_score(image_1_score, image_2_score):
         score_2 = image_2_score[metric]
         if score_1 is None or score_2 is None or not re.match(metric_pattern, metric):
             continue
-        score = score_1 / score_2 if metric in ['hdrvdp3', 'psnr', 'ssim'] else score_2 / score_1
+        score = score_1 > score_2 if metric in ['hdrvdp3', 'psnr', 'ssim'] else score_2 > score_1
         scores.append(score)
     
-    cnt = sum(1 for score in scores if score > 1)
+    # cnt = sum(1 for score in scores if score > 1)
+    # Avoid division by zero by doing compares above and counting here
     sums = sum(scores)
 
-    return cnt
+    return sums
 
 def plot_scores(g_image_map, out_dir):
     # plots_dir = Path(out_dir).joinpath(f'{scene}/{camera}')
@@ -272,7 +296,7 @@ def plot_scores(g_image_map, out_dir):
                     plt.title(f'{scene} - {camera} - {buff_type} [{imageLoaderStr}]')
                     plt.xlabel('Samples (4^x)')
                     plt.ylabel(metric.upper())  # Metric name as y-axis label
-                    for shader, scores in shaders.items():
+                    for shader, scores in sorted(shaders.items()):
                         x, y = zip(*scores) # x = range(len(scores))
                         plt.plot(x, y, marker='o', linestyle='-', label=shader)
                     plt.legend()
@@ -287,13 +311,18 @@ def plot_scores(g_image_map, out_dir):
 
 def main():
     parser = argparse.ArgumentParser(description=f'Compare images and generate plots for each scene, camera, buffer type and metric combination.')
-    parser.add_argument('--results-dir', type=str, required=True, help='Path to the Results directory containing images for comparison.')
+    parser.add_argument('--results-dir', type=str, default='results', help='Path to the Results directory containing images for comparison.')
     parser.add_argument('--output-dir', type=str, default='plots', help='Directory to save the output plot and scores to.')
     parser.add_argument('--image-loader', type=str, default='rgb_aces_tm_nogamma', help='Which loader to use when loading EXR images.')
     parser.add_argument('--scores-file', type=str, default='scores.json', help='Name of the scores JSON file to load/save.')
+    parser.add_argument('--config-file', type=str, default='', help='Configuration file containing scene and camera configurations. Currently used for crops only.')
     parser.add_argument('--plot-only', action='store_true', help='If set, only plot the graph without recomputing scores.')
+    parser.add_argument('--generate-images', action='store_true', help='If set and config-file is provided, generate cropped images (original EXR) and save them in the results directory.')
     parser.add_argument('--cores', default=1, type=int, help='Number of cores to use. 0 uses maximum.')
     parser.add_argument('--ref-index', default=-1, type=int, help='Which reference sequence number to use from the ref directory. Default is the last sequence number (-1) in the ref directory.')
+    parser.add_argument('--blur', type=int, default='0', help='Blur')
+    parser.add_argument('--downsample', type=int, default='0', help='Downsample')
+
     # List-based
     parser.add_argument('--metrics', default='flip,hdrvdp3,mse,psnr,ssim,lpips', help='The metric name to use for comparison. Default all metrics.')
     parser.add_argument('--buffer-types', default='diff_acc,spec_acc,caus_acc,rad_acc', help='The buffer types to use for comparison. Defaults to all buffer types.')
@@ -330,8 +359,12 @@ def main():
     if args.plot_only:
         g_image_map = load(scores_file)
     else:
+        config = load(args.config_file) if args.config_file else {}
         g_image_map, image_counter = scan_directory(results_dir)
-        compute_scores(g_image_map, image_counter, args.ref_index, cores)
+        if args.generate_images:
+            generate_images(g_image_map, config, output_dir)
+            return
+        compute_scores(g_image_map, image_counter, args.ref_index, cores, config)
         save(scores_file, g_image_map)
 
     plot_scores(g_image_map, output_dir)

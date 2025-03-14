@@ -78,10 +78,10 @@ class ImageLoaderFactory:
     @staticmethod
     def create(il_name):
         (imgLoaderDesc, tm) = ImageLoaderFactory.initialise(il_name)
-        return lambda path: load_image(path, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm)
+        return lambda path, config = None: load_image(path, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm, config)
     
         # Method returned expects (input, t, substitute)
     @staticmethod
     def create_for_np_image(il_name):
         (imgLoaderDesc, tm) = ImageLoaderFactory.initialise(il_name)
-        return lambda image: process_loaded_image(image, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm)
+        return lambda image, config = None: process_loaded_image(image, imgLoaderDesc.gray, imgLoaderDesc.toneMapped, imgLoaderDesc.gammaCorrected, tm, config)
