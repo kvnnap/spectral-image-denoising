@@ -29,7 +29,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import *
 from utils.serialisation import load, save
-from utils.image import save_image_as_exr, set_base_path, get_base_path
+from utils.image import save_image_as_exr, save_image_as_png, set_base_path, get_base_path
 from utils.string import comma_to_list
 
 # Globals
@@ -117,10 +117,11 @@ def scan_directory(results_dir):
     return (g_image_map, image_counter)
 
 def generate_images(g_image_map, config, output_dir):
+    png = True
     if config is None:
         return
     trans_dir = output_dir / 'extra'
-    imageLoader = ImageLoaderFactory.create('rgb')
+    imageLoader = ImageLoaderFactory.create('rgb_aces_tm' if png else 'rgb')
     for scene, cameras in g_image_map.items():
         for camera, image_map in cameras.items():
             local_config = get_config(config, scene, camera)
@@ -132,7 +133,10 @@ def generate_images(g_image_map, config, output_dir):
                         transformed_image = imageLoader(img['image'], local_config)
                         transformed_image_path = trans_dir / img['image']
                         transformed_image_path.parent.mkdir(parents=True, exist_ok=True)
-                        save_image_as_exr(transformed_image, str(transformed_image_path))
+                        if png:
+                            save_image_as_png(transformed_image, str(transformed_image_path.with_suffix('.png')))
+                        else:
+                            save_image_as_exr(transformed_image, str(transformed_image_path.with_suffix('.exr')))
 
 class MyTask:
     def __init__(self, scene, camera, buff_type, shader, ref, images, image_loader_str, results_dir, metric_pattern, config):

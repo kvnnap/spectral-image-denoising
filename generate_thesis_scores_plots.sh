@@ -9,6 +9,11 @@
 # might be slow so we are testing by generating cropped, saving them
 # and then using these cropped results later.
 
+# Generate cropped again
+# python tools/thesis_compare_images_graph.py --results-dir /home/vscode/results --config-file crop.json --output-dir results/results_cropped --generate-images
+# python tools/thesis_compare_images_graph.py --results-dir /home/vscode/results --config-file blur.json --output-dir results/results_blurred --generate-images
+# python tools/thesis_compare_images_graph.py --results-dir /home/vscode/results --config-file downsample.json --output-dir results/results_downsampled --generate-images
+
 # Compare with 4M results (cropped - fixed)
 # python tools/thesis_compare_images_graph.py --plot-only  --output-dir graphs/4M_cropped/plots_rgb --metrics flip,hdrvdp3,mse,psnr,ssim
 # python tools/thesis_compare_images_graph.py --plot-only  --output-dir graphs/4M_cropped/plots_rgb_aces_tm_nogamma
