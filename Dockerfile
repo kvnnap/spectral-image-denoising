@@ -88,6 +88,9 @@ COPY --chown=$USER:$USER visualisation /app/visualisation
 COPY --chown=$USER:$USER utils /app/utils
 COPY --chown=$USER:$USER tools /app/tools
 COPY --chown=$USER:$USER version.py /app
+COPY --chown=$USER:$USER trigger_runtime_downloads.py /app
 ENV FFTW=$HOME/opt/fftw-2.1.5 FDCT=$HOME/opt/CurveLab-2.1.3
 ENV XAPPLRESDIR=$HOME/MR/R2023b/X11/app-defaults LD_LIBRARY_PATH=$HOME/MR/R2023b/runtime/glnxa64:$HOME/MR/R2023b/bin/glnxa64:$HOME/MR/R2023b/sys/os/glnxa64:$HOME/MR/R2023b/sys/opengl/lib/glnxa64
+# Trigger LPIPS and/or other runtime downloaded artefacts.
+RUN python3 -Xfrozen_modules=off /app/trigger_runtime_downloads.py
 ENTRYPOINT ["python3", "-Xfrozen_modules=off", "/app/evaluation/run.py"]

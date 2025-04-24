@@ -13,8 +13,6 @@ from flip.data import HWCtoCHW
 from flip.flip_api import compute_exposure_params, compute_ldrflip, compute_hdrflip
 from flip.flip import set_start_stop_num_exposures
 
-from evaluation.image_loader import ImageLoaderDescriptor, ImageLoaderFactory
-
 def local_mse(ref, noisy, dpString):
     #return np.mean((ref - noisy) ** 2).item()
     return mse_fn(ref, noisy).item()
