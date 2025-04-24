@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from utils.constants import NAMEMAP, SCENE_NAME_REGEX
+
 def extract_file_extension(file_path):
     return Path(file_path).suffix
 
@@ -59,3 +61,16 @@ def tables_to_latex(tables):
         lStr += array_to_latex_table(table)
         lStr += '\n\n'
     return lStr
+
+## Scenes
+def get_scene_name(scene):
+    # This line is needed for backward compatibility
+    scene = get_prefix(scene.split('-')[0], -2)
+    match = SCENE_NAME_REGEX.match(scene)
+    return match.group() if match else scene
+
+def get_mapped_scene_name(scene):
+    name = get_scene_name(scene)
+    if name in NAMEMAP:
+        name = NAMEMAP[name]
+    return name

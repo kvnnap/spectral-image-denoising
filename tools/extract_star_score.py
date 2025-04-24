@@ -7,10 +7,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluation.image_loader import ImageLoaderFactory
 from evaluation.metric import *
-from utils.constants import METRICS, NAMEMAP, CONV
+from utils.constants import METRICS, CONV
 from utils.versioning import get_version
 from utils.serialisation import load, save, save_text
-from utils.string import get_prefix, get_suffix, tables_to_csv, tables_to_latex
+from utils.string import get_mapped_scene_name, get_prefix, get_suffix, tables_to_csv, tables_to_latex
 
 def find_exr_files(directory, glob = '*.exr'):
     directory_path = Path(directory)
@@ -66,7 +66,6 @@ def generate_scores(args):
 def generate_tables(scores):
     # Generate csv
     metrics = METRICS
-    nameMap = NAMEMAP
     conv = CONV
     tables = []
     for nLevel in range(9):
@@ -82,9 +81,7 @@ def generate_tables(scores):
         for noisyScene in sppLevel:
             # data = [str(round(d), 2) for d in noisyScene['score'].values()]
             data = [conv[m](noisyScene['score'][m]) for m in metrics]
-            name = get_prefix(noisyScene['noisy'], -2)
-            if name in nameMap:
-                name = nameMap[name]
+            name = get_mapped_scene_name(noisyScene['noisy'])
             row = [name, *data]
             table.append(row)
 

@@ -10,9 +10,9 @@ import itertools
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.versioning import get_version
-from utils.serialisation import load, save, save_text
-from utils.string import comma_to_list, get_prefix, tables_to_csv, tables_to_latex
-from utils.constants import METRICS, NAMEMAP, CONV
+from utils.serialisation import load, save_text
+from utils.string import comma_to_list, tables_to_csv, tables_to_latex, get_mapped_scene_name
+from utils.constants import METRICS, CONV
 
 from visualisation.row_data import RowData
 
@@ -77,8 +77,7 @@ def main():
         table.append(header)
 
         for scene in filterDict['ref-noisy']:
-            sceneName = get_prefix(scene.split('-')[0], -2)
-            mappedName = NAMEMAP[sceneName]
+            mappedName = get_mapped_scene_name(scene)
 
             # get actual run
             sceneRowDatum = [r for r in filtered if r[sceneIndex] == scene][0]
@@ -95,8 +94,7 @@ def main():
         
         for scene in filterDict['ref-noisy']:
             #sRuns = [r for r in runData.runs if r.denoiserParams.]
-            sceneName = get_prefix(scene.split('-')[0], -2)
-            mappedName = NAMEMAP[sceneName]
+            mappedName = get_mapped_scene_name(scene)
 
             sceneRowData = [r for r in filtered if r[sceneIndex] == scene]
             data = []
@@ -116,8 +114,7 @@ def main():
     table = [ header ]
     for scene in filterDict['ref-noisy']:
         #sRuns = [r for r in runData.runs if r.denoiserParams.]
-        sceneName = get_prefix(scene.split('-')[0], -2)
-        mappedName = NAMEMAP[sceneName]
+        mappedName = get_mapped_scene_name(scene)
         sceneRowData = [r for r in filtered if r[sceneIndex] == scene]
 
         # table = [ header ]

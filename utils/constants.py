@@ -1,3 +1,5 @@
+import re
+
 METRICS = ['flip', 'hdrvdp3', 'mse', 'psnr', 'ssim']
 NAMEMAP = {
     'caustic_glass': 'cup',
@@ -16,3 +18,6 @@ CONV = {
     'psnr':     lambda x: f'{-x:.2f}',
     'ssim':     lambda x: f'{-x:.2f}',
 }
+
+# Compile the pattern once when the module loads
+SCENE_NAME_REGEX = re.compile('|'.join([re.escape(key) for key in NAMEMAP.keys()]))

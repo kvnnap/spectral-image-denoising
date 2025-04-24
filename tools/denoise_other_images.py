@@ -12,10 +12,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.image import alpha_correction_chain, save_image_as_png, save_image_as_exr, set_base_path, tone_map, tone_map_aces
 from utils.versioning import get_version
-from utils.serialisation import load, save, save_text
-from utils.string import comma_to_list, get_prefix, tables_to_csv
+from utils.serialisation import load, save
+from utils.string import comma_to_list, get_scene_name
 from visualisation.result_image_processor import ResultImageProcessor
-from utils.constants import NAMEMAP
 
 def find_exr_files(directory="."):
     exr_files = glob.glob(os.path.join(directory, "*.exr"))
@@ -215,8 +214,7 @@ def main():
 
     # Gen filename
     dp = run.denoiserParams
-    sceneName = get_prefix(dp.pairImage[0], -2)
-    
+    sceneName = get_scene_name(dp.pairImage[0])
 
     # Gen scores and possibly save images
     set_base_path('')

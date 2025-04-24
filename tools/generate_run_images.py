@@ -9,9 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.image import alpha_correction_chain, save_image_as_png, save_image_as_exr, set_base_path, tone_map, tone_map_aces
 from utils.versioning import get_version
 from utils.serialisation import load, save_text
-from utils.string import comma_to_list, get_prefix, tables_to_csv
+from utils.string import comma_to_list, get_mapped_scene_name, tables_to_csv
 from visualisation.result_image_processor import ResultImageProcessor
-from utils.constants import NAMEMAP
 
 def main():
     versionString = get_version().to_string()
@@ -64,9 +63,7 @@ def main():
 
     def getSceneName(run):
         dp = run.denoiserParams
-        sceneName = get_prefix(dp.pairImage[0], -2)
-        if sceneName in NAMEMAP:
-            sceneName = NAMEMAP[sceneName]
+        sceneName = get_mapped_scene_name(dp.pairImage[0])
         return sceneName
 
     #runData.runs.sort(key=lambda r: r.denoiserParams.get_value('denoiser_coeff'))
