@@ -60,7 +60,8 @@ RUN cd $HOME \
 COPY --chown=$USER:$USER requirements.txt .
 ENV FFTW=$HOME/opt/fftw-2.1.5 FDCT=$HOME/opt/CurveLab-2.1.3
 RUN pip3 install --no-compile -r requirements.txt \
- && pip3 install --no-compile torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+ && pip3 install --no-compile torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 \
+ && pip3 install lpips==0.1.4
 
 FROM python:3.11-slim-bullseye
 ARG USER=kevin
