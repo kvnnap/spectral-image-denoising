@@ -26,7 +26,7 @@ def show_details(runData, runId, similarity = 1.0):
 
 def main():
     versionString = get_version().to_string()
-    parser = argparse.ArgumentParser(description=f'Fix MSE score.\n{versionString}')
+    parser = argparse.ArgumentParser(description=f'Cosine Similarity Interactive.\n{versionString}')
     parser.add_argument('--result', default='result.json', help='Result input to calculate cosine similarity on')
     args, unknown = parser.parse_known_args()
 
