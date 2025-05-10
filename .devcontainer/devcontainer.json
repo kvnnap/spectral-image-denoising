@@ -11,7 +11,8 @@
 		"type=bind,source=${localEnv:HOME}/.ssh,target=${localEnv:HOME}/.ssh,readonly",
 		"type=bind,source=/etc/localtime,target=/etc/localtime,readonly",
 		"type=bind,source=${localEnv:HOME}/python-anvil,target=/home/vscode/python-anvil",
-		"type=bind,source=/mnt/d/PhD/Scenes/Results,target=/home/vscode/results,readonly"
+		"type=bind,source=/mnt/d/PhD/Scenes/Results,target=/home/vscode/results,readonly",
+		"type=bind,source=/mnt/d/PhD/denoising_final_run/experiments,target=/workspaces/python-image-processing/experiments"
 	],
 	"runArgs": ["--gpus", "all"]
 

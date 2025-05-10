@@ -6,11 +6,10 @@
             "request": "launch",
             "program": "${file}",
             "args": [
-                "--result", "smb/runs_all_8_bm_single.json", 
-                "--image-base", "smb/seeded-images", 
-                "--run-id", "0", 
-                "--image", "smb/spectral-translation",
-                "--out-dir", "smb/spectral-translation/temp"
+                "--result", "experiments/top_config_gray_aces_nogamma_noimp_all_bm.json_runData.json",
+                "--image-base", "experiments/seeded-images",
+                "--run-id", "5614",
+                "--out-scores", "experiments/image_trans_scores.json"
             ],
             "justMyCode": true
         },
@@ -45,7 +44,9 @@
             "program": "${workspaceFolder}/tools/thesis_compare_images_graph.py",
             "args": [
                 "--results-dir", "/home/vscode/results",
-                "--scores-file", "scores.json"
+                "--output-dir", "results/results_cropped",
+                "--config-file", "crop.json",
+                "--generate-images"
             ],
             "justMyCode": true
         },
