@@ -89,7 +89,7 @@ def generate_tables(scores):
     # Group by noise level, scores are sorted already
     score_map = defaultdict(list)
     for score in scores:
-        noisyName = Path(x['noisy'])
+        noisyName = Path(score['noisy'])
         match = re.match(r'^(.+?)_(\d+)$', noisyName.stem)
         score_map[int(match.group(2))].append(score)
 
