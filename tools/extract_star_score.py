@@ -1,7 +1,9 @@
 import sys
 import os
+import re
 import argparse
 from pathlib import Path
+from collections import defaultdict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -12,10 +14,26 @@ from utils.versioning import get_version
 from utils.serialisation import load, save, save_text
 from utils.string import get_mapped_scene_name, get_prefix, get_suffix, tables_to_csv, tables_to_latex
 
-def find_exr_files(directory, glob = '*.exr'):
+def find_exr_files(directory):
+    glob = '*.exr'
     directory_path = Path(directory)
     exr_files = list(directory_path.glob(glob))
-    return sorted(exr_files, key=lambda r: r.name)
+    def sort_key(path):
+        match = re.match(r'^(.+?)_(\d+)$', path.stem)
+        return (match.group(1), int(match.group(2)))
+    return sorted(exr_files, key=sort_key)
+
+# Finds the highest seq number per scene to get the reference
+def find_exr_ref_files(directory, ref_num):
+    ref_exrs = find_exr_files(directory)
+    m = defaultdict(list)
+    for ref in ref_exrs:
+        match = re.match(r'^(.+?)_(\d+)$', ref.stem)
+        m[match.group(1)].append(ref)
+    files = []
+    for k, refs in m.items():
+        files.append(refs[ref_num])
+    return files
 
 class DPString:
     def __init__(self, imageLoader):
@@ -34,7 +52,7 @@ def compute_score(ref, noisy, imgLoaderStr):
 
 def generate_scores(args):
     noisyExrs = find_exr_files(args.noisy_image_dir)
-    refExrs = find_exr_files(args.ref_image_dir, '*_8.exr')
+    refExrs = find_exr_ref_files(args.ref_image_dir, args.ref_seq_num)
 
     # Generate pairs
     pairs = []
@@ -96,6 +114,7 @@ def main():
     parser.add_argument('--noisy-image-dir', default='offline/smb/seeded-images', help='Path to noisy images')
     parser.add_argument('--image-loader', default='gray_aces_tm_nogamma', help='Image loader to use. Defaults to gray_aces_tm_nogamma')
     parser.add_argument('--ref-image-dir', default='offline/smb/seeded-images', help='Path to reference images.')
+    parser.add_argument('--ref-seq-num', default=-1, type=int, help='Which seq num to use as ref from ref-image-dir. -1 defaults to highest.')
     parser.add_argument('--result', default='offline/smb/seeded-images/result.json', help='Path to where to store result.')
     parser.add_argument('--preload', default='', help='Skips score generation. Regenerates csv table from json')
     args = parser.parse_args()
