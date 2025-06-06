@@ -32,6 +32,9 @@ def tables_to_csv(tables):
     return csvStr
 
 def array_to_latex_table(array):
+    if not array:
+        return ""
+
     lStr = "\\begin{table}\n"
     lStr += "\\centering\n"
     lStr += "\\begin{tabular}{|" + "c|" * len(array[0]) + "}\n"
