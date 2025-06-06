@@ -85,10 +85,21 @@ def generate_tables(scores):
     # Generate csv
     metrics = METRICS
     conv = CONV
+
+    # Group by noise level, scores are sorted already
+    score_map = defaultdict(list)
+    for score in scores:
+        noisyName = Path(x['noisy'])
+        match = re.match(r'^(.+?)_(\d+)$', noisyName.stem)
+        score_map[int(match.group(2))].append(score)
+
     tables = []
-    for nLevel in range(9):
-        # Get noisy with spp nLevel
-        sppLevel = [x for x in scores if get_suffix(x['noisy']).startswith(str(nLevel))]
+    for nLevel, nScores in score_map.items():
+        # Fill blank tables
+        lt = len(tables)
+        for n in range(lt, nLevel):
+            print(f'Appending empty table at noise level: {n}')
+            tables.append([])
 
         # Generate table
         table = []
@@ -96,7 +107,7 @@ def generate_tables(scores):
         table.append(header)
 
         # Rows
-        for noisyScene in sppLevel:
+        for noisyScene in nScores:
             # data = [str(round(d), 2) for d in noisyScene['score'].values()]
             data = [conv[m](noisyScene['score'][m]) for m in metrics]
             name = get_mapped_scene_name(noisyScene['noisy'])
