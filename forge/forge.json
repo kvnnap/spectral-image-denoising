@@ -1,6 +1,10 @@
 {
-    "WSUrl": "ws://10.60.10.68:8008",
+    "WSUrl": "ws://192.168.0.182:8008",
     "Systems": [
+        {
+            "Name": "SpectralDenoisingSystem",
+            "Configuration": {}
+        },
         {
             "Name": "MetricImageSystem",
             "Configuration": {}

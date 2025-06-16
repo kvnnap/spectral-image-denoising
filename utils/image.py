@@ -39,7 +39,7 @@ def load_exr_image(file_path):
     height = int(header['dataWindow'].max.y - header['dataWindow'].min.y + 1)
 
     # Read RGB channels with full floating-point precision
-    channels = ['R', 'G', 'B']
+    channels = list(header['channels'].keys())
     pixel_type = Imath.PixelType(Imath.PixelType.FLOAT)
     
     # Read channels and convert to numpy arrays

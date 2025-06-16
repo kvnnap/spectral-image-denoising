@@ -5,15 +5,13 @@ from anvipy.anvil import Anvil
 from anvipy.utils import *
 from anvipy.system.system import load_systems
 
-from forge.metric_image_system import MetricImageSystem
-
 # Example usage
 if __name__ == '__main__':
     # load configuration
     config = load('forge.json')
 
     anvil = Anvil.get_instance()
-    load_systems(anvil, config["Systems"])
+    load_systems(anvil, config["Systems"], 'forge')
 
     anvil.set_uri(config['WSUrl'])
     # entity = anvil.add_entity("MyEntity", {"key": "value"})

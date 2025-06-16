@@ -17,3 +17,13 @@ def to_string_obj(obj):
 def save_text(file_name, text, write_mode='w'):
     with open(file_name, write_mode) as fp:
         fp.write(text)
+
+def load_binary_file(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            binary_data = file.read()
+        return binary_data
+    except FileNotFoundError:
+        print(f"The file {file_path} does not exist.")
+    except IOError as e:
+        print(f"An error occurred while reading the binary file: {e}")
